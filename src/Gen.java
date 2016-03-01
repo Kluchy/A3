@@ -26,7 +26,7 @@ public class Gen extends Principal {
 				print(S,INTRO);
 				String plain = sc.nextLine();
 				plain = plain.trim();
-				String[] inList = plain.split(" ", 2);
+				String[] inList = plain.split(sep, 2);
 				String command = inList[0];
 				if (command.equals(GEN)) {
 					gen(Integer.parseInt(inList[1]));
@@ -61,7 +61,7 @@ public class Gen extends Principal {
 	 */
 	private static void gen(int length) throws NoSuchAlgorithmException, IOException {
 		KeyPairGenerator keyGen =
-				KeyPairGenerator.getInstance("DSA");
+				KeyPairGenerator.getInstance("RSA");
 		keyGen.initialize(length);
 		// gen Alice Keys
 		KeyPair pair = keyGen.generateKeyPair();
