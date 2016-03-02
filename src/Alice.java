@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Scanner;
@@ -25,20 +26,30 @@ public class Alice extends Principal {
 					+ "MAC tagging: '"+SEND+sep+MAC+" [message]'\n\t"
 					+ "Encryption+Tagging: '"+SEND+sep+ENC_MAC+" [message]'";
 
-	public Alice(String portNumber) throws UnknownHostException, IOException {
+	public Alice(String portNumber) throws UnknownHostException, IOException, NoSuchAlgorithmException {
 		pubK = readPubKey(APUBFILE);
 		privK = readPriKey(APRIFILE);
 		otherPubK1 = readPubKey(BPUBFILE);
+		sessionK1 = genSessionKey();
 		otherPubK2 = null;
 		conn = new Client(portNumber);
 		S = "Alice>> ";
-//		if (pubK==null || privK==null || pubKB==null)
+	}
+	
+	public Alice() throws UnknownHostException, IOException, NoSuchAlgorithmException {
+		pubK = readPubKey(APUBFILE);
+		privK = readPriKey(APRIFILE);
+		otherPubK1 = readPubKey(BPUBFILE);
+		sessionK1 = genSessionKey();
+		otherPubK2 = null;
+		S = "Alice>> ";
 	}
 
 	public static void main(String[] args) {
 		Alice alice;
 		try {
-			alice = new Alice(args[0]);
+//			alice = new Alice(args[0]);
+			alice = new Alice();
 			alice.print(INTRO);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println(e);
@@ -47,6 +58,9 @@ public class Alice extends Principal {
 			System.out.println(e);
 			return;
 		} catch (IOException e) {
+			System.out.println(e);
+			return;
+		} catch (NoSuchAlgorithmException e) {
 			System.out.println(e);
 			return;
 		}

@@ -36,7 +36,6 @@ public class Mallory extends Principal {
 		otherPubK2 = readPubKey(BPUBFILE);
 		conn = new Client(portNumber);
 		S = "Mallory>> ";
-//		if (pubK==null || privK==null || pubKB==null)
 	}
 
 	public static void main(String[] args) {

@@ -31,7 +31,6 @@ public class Gen extends Principal {
 	
 	public Gen() {
 		S = "Gen>> ";
-//		if (pubK==null || privK==null || pubKB==null)
 	}
 	
 	public static void main(String[] args) {
@@ -70,7 +69,7 @@ public class Gen extends Principal {
 	}
 	
 	/**
-	 * Creates public and private keys for A,M & B/
+	 * Creates public and private keys for A,M & B
 	 * @param length
 	 * @throws NoSuchAlgorithmException 
 	 * @throws IOException 
@@ -92,24 +91,12 @@ public class Gen extends Principal {
 		byte[] pubKM = pair.getPublic().getEncoded();
 		byte[] priKM = pair.getPrivate().getEncoded();
 		// store keys to files
-		FileOutputStream f = new FileOutputStream(APUBFILE);
-		f.write(pubKA);	    
-		f.close();
-		f = new FileOutputStream(APRIFILE);
-		f.write(priKA);
-		f.close();
-		f = new FileOutputStream(BPUBFILE);
-		f.write(pubKB);
-		f.close();
-		f = new FileOutputStream(BPRIFILE);
-		f.write(priKB);
-		f.close();
-		f = new FileOutputStream(MPUBFILE);
-		f.write(pubKM);
-		f.close();
-		f = new FileOutputStream(MPRIFILE);
-		f.write(priKM);
-		f.close();
+		writeB(APUBFILE, pubKA);
+		writeB(APRIFILE, priKA);
+		writeB(BPUBFILE, pubKB);
+		writeB(BPRIFILE, priKB);
+		writeB(MPUBFILE, pubKM);
+		writeB(MPRIFILE, priKM);
 	}
 
 }
