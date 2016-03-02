@@ -1,14 +1,24 @@
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.UnknownHostException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Scanner;
 
 public class Gen extends Principal {
 	private static final String CLOSE = "quit";
 	private static final String GEN = "gen";
-	private static final String S = "Gen>> ";
 	private static final String INTRO =
 			"Specify length of keys: "
 			+ "'gen [key-length]' ";
@@ -18,12 +28,18 @@ public class Gen extends Principal {
 	private static final String BPRIFILE = "priKB.txt";
 	private static final String MPUBFILE = "pubKM.txt";
 	private static final String MPRIFILE = "priKM.txt";
-		
+	
+	public Gen() {
+		S = "Gen>> ";
+//		if (pubK==null || privK==null || pubKB==null)
+	}
+	
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
+		Gen gen = new Gen();
 		while (true) {
 			try {
-				print(S,INTRO);
+				gen.print(INTRO);
 				String plain = sc.nextLine();
 				plain = plain.trim();
 				String[] inList = plain.split(sep, 2);
@@ -36,20 +52,20 @@ public class Gen extends Principal {
 					break;
 				} 
 				else {
-					print(S, "invalid command");
+					gen.print("invalid command");
 				}
 			} catch (NumberFormatException e) {
-				print(S, "please specify "
+				gen.print("please specify "
 						+ "the length of the keys in number format");
 			} catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
-				print(S,"Unexpected Error. Shutting Down...");
+				gen.print("Unexpected Error. Shutting Down...");
 			} catch (IOException e) {
 				e.printStackTrace();
-				print(S,"Unexpected Error. Shutting Down...");
+				gen.print("Unexpected Error. Shutting Down...");
 			}
 		}
-		print(S,"Shutting Down...");
+		gen.print("Shutting Down...");
 
 	}
 	
@@ -65,33 +81,33 @@ public class Gen extends Principal {
 		keyGen.initialize(length);
 		// gen Alice Keys
 		KeyPair pair = keyGen.generateKeyPair();
-		String pubKA = pair.getPublic().toString();
-		String priKA = pair.getPrivate().toString();
-		// gem Bob Keys
+		byte[] pubKA = pair.getPublic().getEncoded();
+		byte[] priKA = pair.getPrivate().getEncoded();	
+		// gen Bob Keys
 		pair = keyGen.genKeyPair();
-		String pubKB = pair.getPublic().toString();
-		String priKB = pair.getPrivate().toString();
+		byte[] pubKB = pair.getPublic().getEncoded();
+		byte[] priKB = pair.getPrivate().getEncoded();
 		// gen Mallory Keys
 		pair = keyGen.genKeyPair();
-		String pubKM = pair.getPublic().toString();
-		String priKM = pair.getPrivate().toString();
+		byte[] pubKM = pair.getPublic().getEncoded();
+		byte[] priKM = pair.getPrivate().getEncoded();
 		// store keys to files
-		FileWriter f = new FileWriter(APUBFILE);
-		f.write(pubKA);
+		FileOutputStream f = new FileOutputStream(APUBFILE);
+		f.write(pubKA);	    
 		f.close();
-		f = new FileWriter(APRIFILE);
+		f = new FileOutputStream(APRIFILE);
 		f.write(priKA);
 		f.close();
-		f = new FileWriter(BPUBFILE);
+		f = new FileOutputStream(BPUBFILE);
 		f.write(pubKB);
 		f.close();
-		f = new FileWriter(BPRIFILE);
+		f = new FileOutputStream(BPRIFILE);
 		f.write(priKB);
 		f.close();
-		f = new FileWriter(MPUBFILE);
+		f = new FileOutputStream(MPUBFILE);
 		f.write(pubKM);
 		f.close();
-		f = new FileWriter(MPRIFILE);
+		f = new FileOutputStream(MPRIFILE);
 		f.write(priKM);
 		f.close();
 	}
