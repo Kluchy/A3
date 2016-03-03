@@ -20,6 +20,9 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.crypto.BadPaddingException;
@@ -33,6 +36,11 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 
 public class Principal {
+	// returned when malicious activity is suspected
+	protected static final String PANIC = "WARNING! SOMEONE HAS BAD IDEAS";
+	protected static final String WRONG_ENC =
+			"Warning: This cannot be a sane response";
+	protected static final String WRONG_COM = "Warning: unrecongizable packet";
 	// used for I/O
 	protected static final String sep = " ";
 	// used for packaging data in crypto algorithms
@@ -141,6 +149,66 @@ public class Principal {
 		}
 		return null;
 	}
+	
+	/**
+	 * @spec Helper
+	 * @param one
+	 * @param two
+	 * @return byte[] with all elements of
+	 *           one followed by all elements of two
+	 */
+	private static byte[] concat(byte[] one, byte[] two) {
+		byte[] oneTwo = new byte[one.length + two.length];
+		System.arraycopy(one, 0, oneTwo, 0, one.length);
+		System.arraycopy(two, 0, oneTwo, one.length, two.length);
+		return oneTwo;
+	}
+	
+	/**
+	 * @spec intended for transferring data through TCP
+	 * @param one
+	 * @param two
+	 * @return byte[ one + 'del' + two ]
+	 */
+	protected static byte[] pack(byte[] one, byte[] two) {
+		byte[] oneAnd = concat(one, del.getBytes());
+		return concat(oneAnd, two);
+	}
+	
+	/**
+	 * @spec used to receive data from TCP connection
+	 * @param bytes
+	 * @return bytes, if bytes does not contain the 'del' delimiter or
+	 *         List< half1, half2 > such that half1 + 'del' + half2 = bytes 
+	 */
+	protected static List<byte[]> unpack(byte[] bytes) {
+		ArrayList<byte[]> res = new ArrayList<byte[]>();
+		byte target = del.getBytes()[0];
+		int targetIndex = -1;
+		for (int i = 0; i < bytes.length; i++) {
+			byte b = bytes[i];
+			if (b == target) {
+				targetIndex = i;
+				break;
+			}
+		}
+		if (targetIndex == -1) {
+			res.add(bytes);
+			return res;
+		}
+		res.add(Arrays.copyOfRange(bytes, 0, targetIndex));
+		res.add(Arrays.copyOfRange(bytes, targetIndex+1, bytes.length));
+		return res;
+//		String in = new String(bytes);
+//		int indexOfDel = in.indexOf(del);
+//		if (indexOfDel == -1) {
+//			res.add(bytes);
+//			return res;
+//		}
+//		res.add(in.substring(0,indexOfDel).getBytes());
+//		res.add(in.substring(indexOfDel+1).getBytes());
+//		return res;
+	}
 
 	/**
 	 * @spec reads a public key from a file and encodes it appropriately
@@ -234,19 +302,35 @@ public class Principal {
 			// apply symmetric encryption
 			message = enc(inList[1]);
 			// this line for TESTING enc-dec
-			print(new String(dec(message)));
+			print(new String(decrypt(message)));
 		}
 		else if (head.equals(MAC)) {
+			byte[] inB = inList[1].getBytes();
 			// apply MAC only [integrity]
-//			message = mac(inList[1]);
+			message = mac(inB);
+//			message = pack(tag, inB);
+			// these lines for TESTING mac-deMac
+			print(new String(decrypt(message)));
+//			List<byte[]> parts = unpack(message);
+//			print(""+areEqual(tag, parts.get(0)));
+//			print(""+areEqual(inB, parts.get(1)));
+//			print(""+deMac(parts.get(0), parts.get(1)));//true
+//			print(""+deMac(message, inList[1].substring(1).getBytes()));//false
+//			print(""+deMac(message, (inList[1].substring(1)+"1").getBytes()));//false
 		}
 		else if (head.equals(ENC_MAC)) {
 			// apply enc then MAC
-//			message = encThenMac(inList[1]);
+			message = encThenMac(inList[1]);
+			// these lines for TESTING encThenMac-deMacThenDec
+//			List<byte[]> parts = unpack(message);
+//			print(""+areEqual(tag, parts.get(0)));//true
+//			print(""+areEqual(cipher, parts.get(1)));//true
+			print(new String(decrypt(message)));
 		}
 		else {
 			// apply no cryptography
 			message = input.getBytes();
+			print(new String(decrypt(message)));
 		}
 		// write to file
 		writeB(target,message);
@@ -257,7 +341,7 @@ public class Principal {
 	/**
 	 * @spec encrypts message using this principal's primary session key
 	 * @param message
-	 * @return the ciphertext produced
+	 * @return the ciphertext produced with 'ENC' prepended
 	 */
 	protected byte[] enc(String message) {
 		byte[] cipher = null;
@@ -265,10 +349,8 @@ public class Principal {
 			Cipher crypto = Cipher.getInstance(SYM_ENC);
 			crypto.init(Cipher.ENCRYPT_MODE, sessionK1);
 			IV = crypto.getIV();
-			// TODO will this work since we used the defualt encoding
-			//			          to retrieve the bytes, feed them into the Cipher,
-			//			and created a new string witht he defualt encoding?
 			cipher = crypto.doFinal(message.getBytes());
+			cipher = pack(ENC.getBytes(),cipher);
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -291,14 +373,15 @@ public class Principal {
 	/**
 	 * @spec generates a MAC using this principal's primary session key
 	 * @param message
-	 * @return a MAC associated with input message
+	 * @return a MAC associated with input message with 'MAC' prepended
 	 */
-	protected String mac(String message) {
-		String macMessage = null;
+	protected byte[] mac(byte[] message) {
+		byte[] macMessage = null;
 		try {
 			Mac macEngine = Mac.getInstance(MAC_ALG);
 			macEngine.init(sessionK1);
-			macMessage = new String(macEngine.doFinal(message.getBytes()));
+			macMessage = macEngine.doFinal(message);
+			macMessage = pack(MAC.getBytes(), pack(macMessage,message));
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -313,12 +396,39 @@ public class Principal {
 	 * @spec encrypts given message and applies 
 	 *          MAC on the resulting ciphertext
 	 * @param message
-	 * @return a MAC associated with the ciphertext of this message
+	 * @return a MAC associated with the ciphertext of this message, with
+	 *            'ENC_MAC' prepended
 	 */
-	protected String encThenMac(String message) {
-//		String cipher = 	enc(message);
-//		return mac(cipher);
-		return null;
+	protected byte[] encThenMac(String message) {
+		byte[] packedCipher = enc(message);
+		byte[] cipher = unpack(packedCipher).get(1);
+		byte[] packedTag = mac(cipher);
+		byte[] tag = unpack(unpack(packedTag).get(1)).get(0);
+		return pack(ENC_MAC.getBytes(),pack(tag,cipher));
+	}
+	
+	protected byte[] decrypt(byte[] message) {
+		List<byte[]> temp = unpack(message);
+		int tempSize = temp.size();
+		byte[] in1 = temp.get(0);
+		if (tempSize == 1) {
+			// must be a plaintext message
+			return in1;
+		}
+		byte[] in2 = temp.get(1);
+		if (areEqual(ENC.getBytes(),in1)) {
+			// must be a simple encryption
+			return dec(in2);
+		}
+		if (areEqual(MAC.getBytes(), in1)) {
+			// must be a mac-only encryption
+			return deMac(in2);
+		}
+		if (areEqual(ENC_MAC.getBytes(), in1)) {
+			// must be a enc-then-mac encryption
+			return deMacThenDec(in2);
+		}
+		return WRONG_COM.getBytes();
 	}
 
 	/**
@@ -327,11 +437,10 @@ public class Principal {
 	 * @return plaintext from which this cipher came
 	 */
 	protected byte[] dec(byte[] cipher) {
-		byte[] plain = null;//"symmectric decryption";
+		byte[] plain = null;
 		try {
 			Cipher crypto = Cipher.getInstance(SYM_ENC);
 			crypto.init(Cipher.DECRYPT_MODE, sessionK1, new IvParameterSpec(IV));
-			// TODO toString does not convert byte[] data to String
 			plain = crypto.doFinal(cipher);
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
@@ -354,15 +463,58 @@ public class Principal {
 		}
 		return plain;
 	}
-
-	protected String deMac(String cipher) {
-		String plain = "mac verification";
-		return plain;
+	
+	/**
+	 * @param one
+	 * @param two
+	 * @return = one and two contain the same elements in the same 
+	 */
+	private boolean areEqual(byte[] one, byte[] two) {
+		int length = one.length;
+		if (length != two.length) return false;
+		// length are equal
+		for (int i = 0; i < length; i++) {
+			if (one[i] != two[i]) return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * 
+	 * @param tag
+	 * @param message
+	 * @return = tag was produced by MACking message
+	 */
+	protected byte[] deMac(byte[] cipher) {
+		List<byte[]> parts = unpack(cipher);
+		if (parts.size() == 1) {
+			return WRONG_ENC.getBytes();
+		}
+		byte[] tag = parts.get(0);
+		byte[] message = parts.get(1);
+		byte[] packedT = mac(message);
+		byte[] t = unpack(unpack(packedT).get(1)).get(0);
+		if (areEqual(tag,t)) {
+			return message;
+		}
+		return PANIC.getBytes();
 	}
 
-	protected String decThenMac(String cipher) {
-		String plain = "sym-mac decryption";
-		return plain;
+	/**
+	 * 
+	 * @param tag
+	 * @param cipher
+	 * @return plaintext associated with cipher, or warning message if
+	 *         verification fails
+	 */
+	protected byte[] deMacThenDec(byte[] tagNCipher) {
+		byte[] tempRes = deMac(tagNCipher);
+		if (!areEqual(WRONG_ENC.getBytes(),tempRes) &&
+				!areEqual(PANIC.getBytes(),tempRes)) {
+			return dec(tempRes);
+		} else {
+			return PANIC.getBytes();
+		}
 	}
 
 	/**TODO test + fix
