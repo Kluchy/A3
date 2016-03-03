@@ -20,6 +20,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +53,8 @@ public class Principal {
 	protected static final String ENC = "sym";
 	protected static final String MAC = "mac";
 	protected static final String ENC_MAC = ENC+"-"+MAC;
+	// special tag for key transport protocol
+	protected static final String TRANSPORT = "keyTransProtMechv2.0";
 	// algorithm used for asymmetric encryption in key transport
 	private static final String ENC_ALG =
 			"RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
@@ -62,7 +65,7 @@ public class Principal {
 	private static final String SYM_ALG = "AES";
 	// algorithm used by MAC system
 	private static final String MAC_ALG = "HmacSHA256";
-	
+
 	// this principal's key-pair
 	protected PublicKey pubK;
 	protected PrivateKey privK;
@@ -96,12 +99,12 @@ public class Principal {
 	 * @throws IOException
 	 */
 	protected static void write(String filename, String content)
-								throws IOException {
+			throws IOException {
 		FileWriter f = new FileWriter(filename);
 		f.write(content);
 		f.close();
 	}
-	
+
 	/**
 	 * @spec write a byte array to a file, overwriting the file
 	 * @param filename
@@ -128,7 +131,7 @@ public class Principal {
 		sc.close();
 		return content;
 	}
-	
+
 	/**
 	 * @spec read file as String, byte by byte.
 	 * @param filename
@@ -136,20 +139,20 @@ public class Principal {
 	 */
 	protected static byte[] readB(String filename) {
 		try { 
-		File fn = new File(filename);
-		FileInputStream fis = new FileInputStream(fn);
-		DataInputStream dis = new DataInputStream(fis);
-		byte[] bytes = new byte[(int)fn.length()];
-		dis.readFully(bytes);
-		dis.close();
-		return bytes;
+			File fn = new File(filename);
+			FileInputStream fis = new FileInputStream(fn);
+			DataInputStream dis = new DataInputStream(fis);
+			byte[] bytes = new byte[(int)fn.length()];
+			dis.readFully(bytes);
+			dis.close();
+			return bytes;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	/**
 	 * @spec Helper
 	 * @param one
@@ -163,7 +166,7 @@ public class Principal {
 		System.arraycopy(two, 0, oneTwo, one.length, two.length);
 		return oneTwo;
 	}
-	
+
 	/**
 	 * @spec intended for transferring data through TCP
 	 * @param one
@@ -174,7 +177,7 @@ public class Principal {
 		byte[] oneAnd = concat(one, del.getBytes());
 		return concat(oneAnd, two);
 	}
-	
+
 	/**
 	 * @spec used to receive data from TCP connection
 	 * @param bytes
@@ -199,15 +202,15 @@ public class Principal {
 		res.add(Arrays.copyOfRange(bytes, 0, targetIndex));
 		res.add(Arrays.copyOfRange(bytes, targetIndex+1, bytes.length));
 		return res;
-//		String in = new String(bytes);
-//		int indexOfDel = in.indexOf(del);
-//		if (indexOfDel == -1) {
-//			res.add(bytes);
-//			return res;
-//		}
-//		res.add(in.substring(0,indexOfDel).getBytes());
-//		res.add(in.substring(indexOfDel+1).getBytes());
-//		return res;
+		//		String in = new String(bytes);
+		//		int indexOfDel = in.indexOf(del);
+		//		if (indexOfDel == -1) {
+		//			res.add(bytes);
+		//			return res;
+		//		}
+		//		res.add(in.substring(0,indexOfDel).getBytes());
+		//		res.add(in.substring(indexOfDel+1).getBytes());
+		//		return res;
 	}
 
 	/**
@@ -308,23 +311,23 @@ public class Principal {
 			byte[] inB = inList[1].getBytes();
 			// apply MAC only [integrity]
 			message = mac(inB);
-//			message = pack(tag, inB);
+			//			message = pack(tag, inB);
 			// these lines for TESTING mac-deMac
 			print(new String(decrypt(message)));
-//			List<byte[]> parts = unpack(message);
-//			print(""+areEqual(tag, parts.get(0)));
-//			print(""+areEqual(inB, parts.get(1)));
-//			print(""+deMac(parts.get(0), parts.get(1)));//true
-//			print(""+deMac(message, inList[1].substring(1).getBytes()));//false
-//			print(""+deMac(message, (inList[1].substring(1)+"1").getBytes()));//false
+			//			List<byte[]> parts = unpack(message);
+			//			print(""+areEqual(tag, parts.get(0)));
+			//			print(""+areEqual(inB, parts.get(1)));
+			//			print(""+deMac(parts.get(0), parts.get(1)));//true
+			//			print(""+deMac(message, inList[1].substring(1).getBytes()));//false
+			//			print(""+deMac(message, (inList[1].substring(1)+"1").getBytes()));//false
 		}
 		else if (head.equals(ENC_MAC)) {
 			// apply enc then MAC
 			message = encThenMac(inList[1]);
 			// these lines for TESTING encThenMac-deMacThenDec
-//			List<byte[]> parts = unpack(message);
-//			print(""+areEqual(tag, parts.get(0)));//true
-//			print(""+areEqual(cipher, parts.get(1)));//true
+			//			List<byte[]> parts = unpack(message);
+			//			print(""+areEqual(tag, parts.get(0)));//true
+			//			print(""+areEqual(cipher, parts.get(1)));//true
 			print(new String(decrypt(message)));
 		}
 		else {
@@ -334,8 +337,8 @@ public class Principal {
 		}
 		// write to file
 		writeB(target,message);
-//		if (head.equals(ENC)) 
-//			print(new String(dec(readB(target))));
+		//		if (head.equals(ENC)) 
+		//			print(new String(dec(readB(target))));
 	}
 
 	/**
@@ -406,7 +409,7 @@ public class Principal {
 		byte[] tag = unpack(unpack(packedTag).get(1)).get(0);
 		return pack(ENC_MAC.getBytes(),pack(tag,cipher));
 	}
-	
+
 	protected byte[] decrypt(byte[] message) {
 		List<byte[]> temp = unpack(message);
 		int tempSize = temp.size();
@@ -463,7 +466,7 @@ public class Principal {
 		}
 		return plain;
 	}
-	
+
 	/**
 	 * @param one
 	 * @param two
@@ -478,7 +481,7 @@ public class Principal {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * 
 	 * @param tag
@@ -532,11 +535,11 @@ public class Principal {
 		//			
 		//			i++;
 		//		}
-		String message = S + del + sessionK1;
+		byte[] message = pack(S.getBytes(), sessionK1.getEncoded());
 		try {
 			Cipher crypto = Cipher.getInstance(ENC_ALG);
 			crypto.init(Cipher.ENCRYPT_MODE, otherPubK1);
-			cipher = crypto.doFinal(message.getBytes());
+			cipher = crypto.doFinal(message);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -556,14 +559,18 @@ public class Principal {
 		return cipher;
 	}
 	/**
-	 * TODO Implement the transport protocol in the writeup's appendix 
+	 * TODO test
 	 * @param myID
 	 * @param otherID
 	 * @return
 	 */
-	protected String keyTransport(String myID, String otherID) {
-
-		return "signed encrypted message";
+	protected byte[] keyTransport(String otherID) {
+		byte[] cipher = asymEnc();
+		String tA = LocalDateTime.now().toString();
+		byte[] signed = sign(otherID.getBytes(),tA, cipher);
+		return pack(TRANSPORT.getBytes(),
+				pack(otherID.getBytes(),
+						pack(tA.getBytes(),pack(cipher, signed))));
 	}
 
 	/** TODO test, fix and cleanup
@@ -577,15 +584,28 @@ public class Principal {
 	 * @throws InvalidKeyException
 	 * @throws SignatureException
 	 */
-	protected String sign(String otherID, String myTimestamp,
-			String cipher) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		Signature dsa = Signature.getInstance("SHA1withDSA");
-		dsa.initSign(privK);
-		// add otherID and timestamp to cipher before signing
-		String data = otherID + del + myTimestamp + del + cipher;
-		dsa.update(data.getBytes());
-		byte[] sig = dsa.sign();
-		return sig.toString();
+	protected byte[] sign(byte[] otherID, String myTimestamp, 
+			byte[] cipher) {
+		byte[] sig = null;
+		try {
+			Signature dsa = Signature.getInstance("SHA1withDSA");
+			dsa.initSign(privK);
+			// add otherID and timestamp to cipher before signing
+			byte[] data = pack(otherID, pack(myTimestamp.getBytes(),cipher));
+			dsa.update(data);
+			sig = dsa.sign();
+			return sig;
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SignatureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sig;	
 	}
 
 	/** TODO test, fix and cleanup
@@ -600,13 +620,41 @@ public class Principal {
 	 * @throws InvalidKeyException
 	 * @throws SignatureException
 	 */
-	protected String verifySign(String myID, String myTimestamp,
-			PublicKey verificationKey, String data, byte[] signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		Signature dsa = Signature.getInstance("SHA1withDSA");
-		dsa.initVerify(verificationKey);
-		dsa.update(data.getBytes());
-		boolean verifies = dsa.verify(signature);
-		System.out.println("signature verifies: " + verifies);
+	protected String verifySign(byte[] data) {
+		boolean verifies = false;
+		//		String myTimestamp = LocalDateTime.now().toString();
+		// unpack data
+		List<byte[]> temp = unpack(data);
+		byte[] id = temp.get(0);
+		assert areEqual(S.getBytes(),id);
+		assert temp.size() == 2;
+		// check range of timestamps: has to be within a second of send
+		temp = unpack(temp.get(1));
+		byte[] time = temp.get(0); // this is the timestamp
+		assert LocalDateTime.now().isBefore(
+				LocalDateTime.parse(new String(time)).plusSeconds(1));
+		temp = unpack(temp.get(1));
+		assert temp.size() == 2;
+		byte[] cipher = temp.get(0);
+		byte[] signed = temp.get(1);
+		byte[] message = pack(id, pack(time, cipher));
+		try {
+			Signature dsa = Signature.getInstance("SHA1withDSA");
+			dsa.initVerify(otherPubK1);
+			dsa.update(message);
+			verifies = dsa.verify(signed);
+			System.out.println("signature verifies: " + verifies);
+			return ""+verifies;
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SignatureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return ""+verifies;
 	}
 }
