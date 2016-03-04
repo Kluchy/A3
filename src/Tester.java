@@ -1,5 +1,6 @@
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,6 +35,14 @@ public class Tester {
 		for (byte bb: b) {
 			System.out.println(bb);
 
+		}
+		try {
+			Client c = new Client("8080");
+			c.send("boo");
+			c.send("aaaaaaa");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}
