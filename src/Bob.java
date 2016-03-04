@@ -1,8 +1,5 @@
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.io.*;
+import java.net.*;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -19,11 +16,42 @@ public class Bob extends Principal {
 		privK = readPriKey(BPRIFILE);
 		otherPubK1 = readPubKey(APUBFILE);
 		otherPubK2 = null;
-		conn = new Client(portNumber);
 		S = "Bob>> ";
 //		if (pubK==null || privK==null || pubKB==null)
 	}
 	
+	public static void main(String args[]) {
+		//bob's port number is just 8080
+		int port = 8080;
+        ServerSocket serverBob = null;
+        String line;
+        BufferedReader inputStream;
+        Socket clientSocket = null;
+		// Try to open a server socket on port
+        try {
+           serverBob = new ServerSocket(port);
+        }
+        catch (IOException e) {
+           System.out.println(e);
+        }   
+		// Create a socket object. Accept connections. Open in stream
+	    try {
+	           clientSocket = serverBob.accept();
+	           inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	           //bob just prints whatever he receives...
+	           System.out.println("Bob >>");
+	           while (true) {
+	             line = inputStream.readLine();
+	             System.out.println(line); 
+	           }
+	        }   
+		    catch (IOException e) {
+		           System.out.println(e);
+		        }
+		    }
+	
+	//old main function
+	/*
 	public static void main(String[] args) {
 		Socket MyClient;
 		try {
@@ -44,4 +72,5 @@ public class Bob extends Principal {
 		} finally {
 		}
 	}
+	*/
 }
