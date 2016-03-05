@@ -60,7 +60,7 @@ public class Principal {
 			"RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
 	// algorithm used to encrypt and decrypt (symmetric)
 	private static final String SYM_ENC = "AES/CBC/ISO10126Padding";
-	private byte[] IV; // used to decrypt with symmetric key
+	private static byte[] IV; // used to decrypt with symmetric key
 	// algorithm used for generating symmetric key
 	private static final String SYM_ALG = "AES";
 	// algorithm used by MAC system
@@ -79,8 +79,12 @@ public class Principal {
 	protected PublicKey otherPubK2;
 	//// session key shared with secondary peer, if needed
 	protected SecretKey sessionK2;
-	// Socket used to communicate with primary peer
+	// Socket used to send messages to primary peer
+	//// used by Alice and Mallory
 	protected Client conn;
+	// Socket used to receive messages from primary peer
+	//// used by Mallory and Bob
+	protected Server host;
 	// this principal's idnetifier
 	protected String S;
 
@@ -153,19 +157,7 @@ public class Principal {
 		return null;
 	}
 
-	/**
-	 * @spec Helper
-	 * @param one
-	 * @param two
-	 * @return byte[] with all elements of
-	 *           one followed by all elements of two
-	 */
-	private static byte[] concat(byte[] one, byte[] two) {
-		byte[] oneTwo = new byte[one.length + two.length];
-		System.arraycopy(one, 0, oneTwo, 0, one.length);
-		System.arraycopy(two, 0, oneTwo, one.length, two.length);
-		return oneTwo;
-	}
+
 
 	/**
 	 * @spec intended for transferring data through TCP
@@ -174,8 +166,8 @@ public class Principal {
 	 * @return byte[ one + 'del' + two ]
 	 */
 	protected static byte[] pack(byte[] one, byte[] two) {
-		byte[] oneAnd = concat(one, del.getBytes());
-		return concat(oneAnd, two);
+		byte[] oneAnd = Util.concat(one, del.getBytes());
+		return Util.concat(oneAnd, two);
 	}
 
 	/**
@@ -337,6 +329,8 @@ public class Principal {
 		}
 		// write to file
 		writeB(target,message);
+		// send to socket
+		conn.send(message);
 		//		if (head.equals(ENC)) 
 		//			print(new String(dec(readB(target))));
 	}

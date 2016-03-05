@@ -11,18 +11,19 @@ public class Bob extends Principal {
 	private static final String APUBFILE = "pubKA.txt";
 
 
-	public Bob() throws UnknownHostException, IOException {
+	public Bob(String portNumber) throws UnknownHostException, IOException {
 		pubK = readPubKey(BPUBFILE);
 		privK = readPriKey(BPRIFILE);
 		otherPubK1 = readPubKey(APUBFILE);
 		otherPubK2 = null;
+		host = new Server(portNumber);
 		S = "Bob>> ";
 	}
 
 	public static void main(String args[]) {
 		Bob b;
 		try {
-			b = new Bob();
+			b = new Bob("8080");
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println(e);
 			return;
@@ -33,35 +34,25 @@ public class Bob extends Principal {
 			System.out.println(e);
 			return;
 		}
-		//bob's port number is just 8080
-		int port = 8080;
-		ServerSocket serverBob = null;
-		String line;
-		BufferedReader inputStream;
-		Socket clientSocket = null;
-		// Try to open a server socket on port
-		try {
-			serverBob = new ServerSocket(port);
-		}
-		catch (IOException e) {
-			System.out.println(e);
-		}   
-		// Create a client socket and accept client connections to socket.
-		//Open input stream from client 
-		try {
-			clientSocket = serverBob.accept();
-			inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			//bob just prints whatever he receives...
-			while (true) {
-				if (inputStream.ready()) {
-					line = inputStream.readLine();
+
+
+		//bob just prints whatever he receives...
+		while (true) {
+			BufferedReader in = b.host.getInput();
+			try {
+//				b.print("waiting...");
+				if (in.ready()) {
+					b.print("oh look a message..");
+					String line = b.host.read();
 					//System.out.println(line); 
-					b.print(line);
+					b.print("received message: " + line);
+					b.print("decrypting...");
+					byte[] plain = b.decrypt(line.getBytes());
+					b.print(new String(plain));
 				}
+			} catch (IOException e) {
+				b.print("error retrieveing message");
 			}
-		}   
-		catch (IOException e) {
-			System.out.println(e);
 		}
 	}
 }

@@ -38,8 +38,8 @@ public class Tester {
 		}
 		try {
 			Client c = new Client("8080");
-			c.send("boo");
-			c.send("aaaaaaa");
+			c.send("boo".getBytes());
+			c.send("aaaaaaa".getBytes());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
