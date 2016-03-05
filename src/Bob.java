@@ -11,7 +11,7 @@ public class Bob extends Principal {
 	private static final String APUBFILE = "pubKA.txt";
 
 
-	public Bob(String portNumber) throws UnknownHostException, IOException {
+	public Bob() throws UnknownHostException, IOException {
 		pubK = readPubKey(BPUBFILE);
 		privK = readPriKey(BPRIFILE);
 		otherPubK1 = readPubKey(APUBFILE);
@@ -20,6 +20,19 @@ public class Bob extends Principal {
 	}
 
 	public static void main(String args[]) {
+		Bob b;
+		try {
+			b = new Bob();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println(e);
+			return;
+		} catch (UnknownHostException e) {
+			System.out.println(e);
+			return;
+		} catch (IOException e) {
+			System.out.println(e);
+			return;
+		}
 		//bob's port number is just 8080
 		int port = 8080;
 		ServerSocket serverBob = null;
@@ -33,16 +46,17 @@ public class Bob extends Principal {
 		catch (IOException e) {
 			System.out.println(e);
 		}   
-		// Create a socket object. Accept connections. Open in stream
+		// Create a client socket and accept client connections to socket.
+		//Open input stream from client 
 		try {
 			clientSocket = serverBob.accept();
 			inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			//bob just prints whatever he receives...
-			System.out.println("Bob >>");
 			while (true) {
 				if (inputStream.ready()) {
 					line = inputStream.readLine();
-					System.out.println(line); 
+					//System.out.println(line); 
+					b.print(line);
 				}
 			}
 		}   
@@ -50,28 +64,4 @@ public class Bob extends Principal {
 			System.out.println(e);
 		}
 	}
-
-	//old main function
-	/*
-	public static void main(String[] args) {
-		Socket MyClient;
-		try {
-			MyClient = new Socket("localhost", 8080);
-		    DataInputStream input =
-		    		new DataInputStream(MyClient.getInputStream());
-		    PrintStream output =
-		    		new PrintStream(MyClient.getOutputStream());
-		    output.println("this is Bob");
-		    output.flush();
-		    input.close();
-		    output.close();
-			MyClient.close();
-			System.out.println("Bob done");
-		}
-		catch (IOException e) {
-			System.out.println(e);
-		} finally {
-		}
-	}
-	 */
 }

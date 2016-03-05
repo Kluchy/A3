@@ -22,25 +22,14 @@ public class Mallory extends Principal {
 	private PublicKey pubKA;
 	private PublicKey pubKB;
 	//private Client conn;
-	//message field to story Alice's intercepted message - probably shouldn't be string
-	private String message; 
 	
 	public Mallory(String portNumber) throws UnknownHostException, IOException {
 		pubK = readPubKey(MPUBFILE);
 		privK = readPriKey(MPRIFILE);
 		otherPubK1 = readPubKey(APUBFILE);
 		otherPubK2 = readPubKey(BPUBFILE);
-		message = "";
 		//conn = new Client(portNumber);
 		S = "Mallory>> ";
-	}
-	
-	public String getMessage(){
-		return message; 
-	}
-	
-	public void setMessage(String s){
-		message = s; 
 	}
 
 	public static void main(String[] args) {
@@ -58,27 +47,15 @@ public class Mallory extends Principal {
 			return;
 		}
 		
-		//the client side of Mallory that tries to send things to Bob
-		int givenPortNumber = Integer.parseInt(args[0]);
-		Socket bobSocket = null;  
-		DataOutputStream malloryOutStream = null;
-		//try to connect to port given
-		try {
-			bobSocket = new Socket("localhost", givenPortNumber);
-			malloryOutStream = new DataOutputStream(bobSocket.getOutputStream());
-		} catch (UnknownHostException e) {
-			System.out.println("unknown host");
-		} catch (IOException e) {
-			System.out.println("io error");
-		}
-		
 		//the server side of Mallory that receive things from Alice 
 		//mallery's port number is 9090
 		int malloryPortNumber = 9090;
 		ServerSocket serverMallory = null;
 		String line;
+		DataOutputStream outStream = null;
 		BufferedReader inputStream = null;
 		Socket clientSocket = null;
+		Socket malloryClientSocket = null;
 		// Try to open a server socket on port
 		try {
 			serverMallory = new ServerSocket(malloryPortNumber);
@@ -88,43 +65,15 @@ public class Mallory extends Principal {
 		}   
 		// Create a client socket for Alice
 		try {
+			malloryClientSocket = serverMallory.accept();
 			clientSocket = serverMallory.accept();
 			inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			outStream = new DataOutputStream(malloryClientSocket.getOutputStream());
 			while (true) {
 				if (inputStream.ready()) {
 					line = inputStream.readLine();
-					//at this point, we got alice's message and store it in mallory's message field
-					//need to change from string 
-					mal.setMessage(line);
-					System.out.println("Mallory has read Alice's message");
-					if (bobSocket != null && malloryOutStream != null) {
-						try {
-							//filler text sent to bob 
-							//TO-DO: prompt user to give user input on what to do with Alice's message
-							//For now, we modify it to the following:
-							//need to figure some way of detecting when Mallory got Alice's message AND 
-							//THEN doing something to it and sending to bob - need to wait? 
-							//client needs to wait for server? 
-							System.out.println("Alice's original message: " + mal.getMessage());
-							mal.setMessage("HA! I STOLE ALICE'S MESSAGE AND NOW I SPAM YOU!");
-							malloryOutStream.writeBytes(mal.getMessage());     
-							//Remember to close everything
-							malloryOutStream.close();
-							bobSocket.close();   
-
-						} catch (UnknownHostException e) {
-							System.out.println(e);
-						}
-						catch (IOException e) {
-							System.out.println(e);
-						}
-						catch (NumberFormatException e) {
-							System.out.println(e);
-						}
-						catch (ArrayIndexOutOfBoundsException e) {
-							System.out.println(e);
-						}
-					}
+					outStream.writeBytes(line);
+					//mal.print(line);
 				}
 			}
 		}   
@@ -132,8 +81,53 @@ public class Mallory extends Principal {
 			System.out.println(e);
 		}
 		
+		//the client side of Mallory that tries to sends things to Bob
+		int givenPortNumber = Integer.parseInt(args[0]);
+		Socket bobSocket = null;  
+		Socket mallorySocket = null; 
+		DataOutputStream malloryOutStream = null;
+		BufferedReader malloryInStream = null;
+		//try to connect to port given
+		try {
+			bobSocket = new Socket("localhost", givenPortNumber);
+			mallorySocket = new Socket("", 9090);
+			malloryOutStream = new DataOutputStream(bobSocket.getOutputStream());
+			malloryInStream = new BufferedReader(new InputStreamReader(mallorySocket.getInputStream()));
+		} catch (UnknownHostException e) {
+			System.out.println("unknown host");
+		} catch (IOException e) {
+			System.out.println("io error");
+		}
 
-		
+		if (bobSocket != null && malloryOutStream != null && malloryInStream != null && mallorySocket != null) {
+			try {
+				//filler text sent to bob 
+				//TO-DO: This need to be revised to allow for Mallory to do more things
+				String response = malloryInStream.readLine();
+				malloryOutStream.writeBytes(response);
+				
+				//mal.print(line);
+				//malloryOutStream.writeBytes("HELLO FROM MALLORY\n");    
+				//malloryOutStream.writeBytes("BYE FROM MALLORY\n");     
+				
+				//Remember to close everything
+				malloryOutStream.close();
+				malloryInStream.close();
+				bobSocket.close();   
+				mallorySocket.close();
+			} catch (UnknownHostException e) {
+				System.out.println(e);
+			}
+			catch (IOException e) {
+				System.out.println(e);
+			}
+			catch (NumberFormatException e) {
+				System.out.println(e);
+			}
+			catch (ArrayIndexOutOfBoundsException e) {
+				System.out.println(e);
+			}
+		}
 
 	}
 }
