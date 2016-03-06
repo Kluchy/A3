@@ -82,7 +82,6 @@ public class Mallory extends Principal {
 					for (int i = 0; i < messages.size(); i++) {
 						mal.print("Message " + i + ":" + messages.get(i));
 					}
-					break;
 				}
 				else if (command.equals(CLOSE)) {
 					mal.print("Shutting Down Mallory...");
