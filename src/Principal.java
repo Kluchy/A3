@@ -60,7 +60,7 @@ public class Principal {
 			"RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
 	// algorithm used to encrypt and decrypt (symmetric)
 	private static final String SYM_ENC = "AES/CBC/ISO10126Padding";
-	private static byte[] IV; // used to decrypt with symmetric key
+	private static byte[] IV = readB("ivAB"); // used to decrypt with symmetric key
 	// algorithm used for generating symmetric key
 	private static final String SYM_ALG = "AES";
 	// algorithm used by MAC system
@@ -344,8 +344,8 @@ public class Principal {
 		byte[] cipher = null;
 		try {
 			Cipher crypto = Cipher.getInstance(SYM_ENC);
-			crypto.init(Cipher.ENCRYPT_MODE, sessionK1);
-			IV = crypto.getIV();
+			crypto.init(Cipher.ENCRYPT_MODE, sessionK1, new IvParameterSpec(IV));
+//			IV = crypto.getIV();
 			cipher = crypto.doFinal(message.getBytes());
 			cipher = pack(ENC.getBytes(),cipher);
 		} catch (InvalidKeyException e) {
@@ -361,6 +361,9 @@ public class Principal {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -437,7 +440,9 @@ public class Principal {
 		byte[] plain = null;
 		try {
 			Cipher crypto = Cipher.getInstance(SYM_ENC);
-			crypto.init(Cipher.DECRYPT_MODE, sessionK1, new IvParameterSpec(IV));
+			print("sessionK1 for " + S + " is: " + sessionK1);
+			IvParameterSpec iv = new IvParameterSpec(IV);
+			crypto.init(Cipher.DECRYPT_MODE, sessionK1, iv);
 			plain = crypto.doFinal(cipher);
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
