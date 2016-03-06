@@ -35,16 +35,12 @@ public class Bob extends Principal {
 			return;
 		}
 
-
 		//bob just prints whatever he receives...
 		while (true) {
 			BufferedReader in = b.host.getInput();
 			try {
-//				b.print("waiting...");
 				if (in.ready()) {
-					b.print("oh look a message..");
 					String line = b.host.read();
-					//System.out.println(line); 
 					b.print("received message: " + line);
 					b.print("decrypting...");
 					byte[] plain = b.decrypt(line.getBytes());

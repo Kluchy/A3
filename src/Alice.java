@@ -66,28 +66,6 @@ public class Alice extends Principal {
 			return;
 		}
 
-		//		if (serverSocket != null && outStream != null && inStream != null) {
-		// if (alice.conn != null) { guaranteed by try-catch above
-		//		try {
-		//			//filler text sent to mallory or bob
-		//			//TO-DO: This need to be revised to allow for user input
-		//			alice.conn.send("HELLO FROM ALICE\n".getBytes());           
-		//			//Remember to close everything
-		//			alice.conn.close();  
-		//		} catch (UnknownHostException e) {
-		//			System.out.println(e);
-		//		}
-		//		catch (IOException e) {
-		//			System.out.println(e);
-		//		}
-		//		catch (NumberFormatException e) {
-		//			System.out.println(e);
-		//		}
-		//		catch (ArrayIndexOutOfBoundsException e) {
-		//			System.out.println(e);
-		//		}
-
-
 		Scanner sc = new Scanner(System.in);
 		while (true) {
 			try {
