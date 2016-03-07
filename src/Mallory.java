@@ -21,6 +21,7 @@ public class Mallory extends Principal {
 					+ "to forward message: '"+"forward"+"'\n\t"
 					+ "to modify message: '"+"modify"+"'\n\t"
 					+ "to drop message: '"+"drop"+"'\n\t"				
+					+ "to display all old messages: '"+"display"+"'\n\t" 
 					+ "to replay an old message: '"+"replay [message#]"+"'";
 
 	private PublicKey pubK;
@@ -78,9 +79,9 @@ public class Mallory extends Principal {
 					break;
 				}
 				else if (command.equals("display")) {
-					mal.print("Old messages: \n");
+					mal.print("Old messages: ");
 					for (int i = 0; i < messages.size(); i++) {
-						mal.print("Message " + i + ":" + new String(messages.get(i)));
+						System.out.println("Message " + new String(messages.get(i)));
 					}
 				}
 				else if (command.equals("replay")) {
@@ -95,6 +96,7 @@ public class Mallory extends Principal {
 					} catch (NumberFormatException e) {
 						mal.print("to replay, type 'replay [message#]'");
 					}
+					break; 
 				}
 				else if (command.equals(CLOSE)) {
 					mal.print("Shutting Down Mallory...");
