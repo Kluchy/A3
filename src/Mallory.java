@@ -30,25 +30,25 @@ public class Mallory extends Principal {
 	//private Client conn;
 	//An arraylist of Alice's messages intercepted by Mallory and stored for future reference
 	//index 0 = the oldest message, index size() - 1 = most recent message
-	private ArrayList<String> messages; 
+	private ArrayList<byte[]> messages; 
 
 	public Mallory(String portNumber) throws UnknownHostException, IOException {
 		pubK = readPubKey(MPUBFILE);
 		privK = readPriKey(MPRIFILE);
 		otherPubK1 = readPubKey(APUBFILE);
 		otherPubK2 = readPubKey(BPUBFILE);
-		messages = new ArrayList<String>();
+		messages = new ArrayList<byte[]>();
 		conn = new Client(portNumber);
 		host = new Server("9090");
 		S = "Mallory>> ";
 	}
 	
 	//The following are functions Mallory can use to edit/modify/store Alice's messages
-	public void addMessage (String message) {
+	public void addMessage (byte[] message) {
 		messages.add(message);
 	}
 	
-	public String getMostRecentMessage(){
+	public byte[] getMostRecentMessage(){
 		return messages.get(messages.size() - 1);
 	}
 
@@ -62,7 +62,7 @@ public class Mallory extends Principal {
 				String[] inList = plain.split(sep, 2);
 				String command = inList[0];
 				if (command.equals("forward")) {
-					mal.conn.send(mal.getMostRecentMessage().getBytes()); 
+					mal.conn.send(mal.getMostRecentMessage()); 
 					mal.print("Mallory has forwarded message to Bob");
 					break;
 				}
@@ -117,10 +117,11 @@ public class Mallory extends Principal {
 		while (true) {
 			try {
 				if (mal.host.getInput().ready()) {
-					String line = mal.host.read();
+					byte[] line = mal.host.read();
 					//at this point, we got alice's message and need to store it
 					mal.addMessage(line);
-					mal.print("Alice's original message: " + mal.getMostRecentMessage());
+					mal.print("Alice's original message: " 
+					          + new String(mal.getMostRecentMessage()));
 					//TO-DO: prompt user to give user input on what to do with Alice's message
 					mal.promptUser(mal);    
 					//Remember to close everything

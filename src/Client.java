@@ -11,6 +11,7 @@ public class Client {
 	private BufferedReader input;
 	private DataOutputStream output;
 	private Socket socket;
+	private Integer numMessagesSent = 0;
 
 	public Client(String portNumber) throws UnknownHostException, IOException {
 		int port = Integer.parseInt(portNumber);
@@ -27,17 +28,20 @@ public class Client {
 	}
 
 	public void send(byte[] m) throws IOException {
-		output.write(Util.concat(m, Util.TERMINATOR));
+		byte[] packet = Util.concat(m, Util.TERMINATOR);
+		packet = Principal.pack(numMessagesSent.toString().getBytes(), packet);
+		output.write(packet);
 		output.flush();
+		numMessagesSent++;
 	}
 
-	public String read() {
-		try {
-			return input.readLine();
-		} catch (IOException e) {
-			return "error reading message";
-		}
-	}
+//	public String read() {
+//		try {
+//			return input.readLine();
+//		} catch (IOException e) {
+//			return "error reading message";
+//		}
+//	}
 
 
 }

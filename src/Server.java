@@ -9,13 +9,16 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
 
 
-public class Server {		
+public class Server {	
+	
 	private BufferedReader input;
 	private DataOutputStream output;
 	private ServerSocket socket;
 	private Socket clientSocket;
+	private int numMessagesReceived = 0;
 
 	
 	public BufferedReader getInput() {
@@ -71,11 +74,25 @@ public class Server {
 		output.flush();
 	}
 
-	public String read() {
+	/**
+	 * @throws NumberFormatException - if message number not included
+	 * @return
+	 */
+	public byte[] read() {
 		try {
-			return input.readLine();
+			byte[] in = input.readLine().getBytes();
+			List<byte[]> temp = Principal.unpack(in);
+			// get message number
+			int num = Integer.parseInt(new String(temp.get(0)));
+			if (num >= numMessagesReceived) {
+				// set to the follower of the highest index received.
+				numMessagesReceived = num + 1;
+				return temp.get(1);
+			} else {
+				return Util.ATTACK_FLAG;
+			}
 		} catch (IOException e) {
-			return "error reading message";
+			return null;
 		}
 	}
 

@@ -471,7 +471,7 @@ public class Principal {
 	 * @param two
 	 * @return = one and two contain the same elements in the same 
 	 */
-	private boolean areEqual(byte[] one, byte[] two) {
+	protected static boolean areEqual(byte[] one, byte[] two) {
 		int length = one.length;
 		if (length != two.length) return false;
 		// length are equal

@@ -1,6 +1,7 @@
 
 public class Util {
 	static final byte[] TERMINATOR = "\n".getBytes();
+	static final byte[] ATTACK_FLAG = "%%@tTaCk_fLaG%%".getBytes();
 
 	/**
 	 * @spec Helper

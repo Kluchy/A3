@@ -40,10 +40,13 @@ public class Bob extends Principal {
 			BufferedReader in = b.host.getInput();
 			try {
 				if (in.ready()) {
-					String line = b.host.read();
-					b.print("received message: " + line);
+					byte[] line = b.host.read();
+					if (areEqual(line, Util.ATTACK_FLAG)) {
+						b.print("received a malicious message number!");
+					}
+					b.print("received message: " + new String(line));
 					b.print("decrypting...");
-					byte[] plain = b.decrypt(line.getBytes());
+					byte[] plain = b.decrypt(line);
 					b.print(new String(plain));
 				}
 			} catch (IOException e) {
