@@ -20,8 +20,8 @@ public class Mallory extends Principal {
 			"Here are your options:\r\n\t"
 					+ "to forward message: '"+"forward"+"'\n\t"
 					+ "to modify message: '"+"modify"+"'\n\t"
-					+ "to drop message: '"+"drop"+"'\n\t"
-					+ "to display old messages: '"+"display"+"'";
+					+ "to drop message: '"+"drop"+"'\n\t"				
+					+ "to replay an old message: '"+"replay [message#]"+"'";
 
 	private PublicKey pubK;
 	private PrivateKey privK;
@@ -62,7 +62,7 @@ public class Mallory extends Principal {
 				String[] inList = plain.split(sep, 2);
 				String command = inList[0];
 				if (command.equals("forward")) {
-					mal.conn.send(mal.getMostRecentMessage()); 
+					mal.conn.sendRaw(mal.getMostRecentMessage()); 
 					mal.print("Mallory has forwarded message to Bob");
 					break;
 				}
@@ -80,7 +80,20 @@ public class Mallory extends Principal {
 				else if (command.equals("display")) {
 					mal.print("Old messages: \n");
 					for (int i = 0; i < messages.size(); i++) {
-						mal.print("Message " + i + ":" + messages.get(i));
+						mal.print("Message " + i + ":" + new String(messages.get(i)));
+					}
+				}
+				else if (command.equals("replay")) {
+					try {
+						String index = inList[1];
+						int i = Integer.parseInt(index);
+						mal.conn.sendRaw(messages.get(i)); 
+						mal.print("Mallory has replayed message " + i);
+					} catch (IndexOutOfBoundsException e) {
+						mal.print("error: choose a number between 0 and "
+								+ messages.size());
+					} catch (NumberFormatException e) {
+						mal.print("to replay, type 'replay [message#]'");
 					}
 				}
 				else if (command.equals(CLOSE)) {
@@ -117,7 +130,7 @@ public class Mallory extends Principal {
 		while (true) {
 			try {
 				if (mal.host.getInput().ready()) {
-					byte[] line = mal.host.read();
+					byte[] line = mal.host.readRaw();
 					//at this point, we got alice's message and need to store it
 					mal.addMessage(line);
 					mal.print("Alice's original message: " 

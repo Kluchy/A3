@@ -95,7 +95,19 @@ public class Server {
 			return null;
 		}
 	}
-
+		
+		/**
+		 * @throws NumberFormatException - if message number not included
+		 * @return
+		 */
+		public byte[] readRaw() {
+			try {
+				byte[] in = input.readLine().getBytes();
+				return in;
+			} catch (IOException e) {
+				return null;
+			}
+		}
 
 }
 

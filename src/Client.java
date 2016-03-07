@@ -34,6 +34,12 @@ public class Client {
 		output.flush();
 		numMessagesSent++;
 	}
+	
+	public void sendRaw(byte[] m) throws IOException {
+		output.write(Util.concat(m, Util.TERMINATOR));
+		output.flush();
+		numMessagesSent++;
+	}
 
 //	public String read() {
 //		try {

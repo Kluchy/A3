@@ -42,12 +42,14 @@ public class Bob extends Principal {
 				if (in.ready()) {
 					byte[] line = b.host.read();
 					if (areEqual(line, Util.ATTACK_FLAG)) {
-						b.print("received a malicious message number!");
+						b.print("received a malicious message number!"
+								+ " Discarding...");
+					} else {
+						b.print("received message: " + new String(line));
+						b.print("decrypting...");
+						byte[] plain = b.decrypt(line);
+						b.print(new String(plain));
 					}
-					b.print("received message: " + new String(line));
-					b.print("decrypting...");
-					byte[] plain = b.decrypt(line);
-					b.print(new String(plain));
 				}
 			} catch (IOException e) {
 				b.print("error retrieveing message");
