@@ -82,6 +82,7 @@ public class Mallory extends Principal {
 					for (int i = 0; i < messages.size(); i++) {
 						mal.print("Message " + i + ":" + new String(messages.get(i)));
 					}
+					break; 
 				}
 				else if (command.equals("replay")) {
 					try {
@@ -95,6 +96,7 @@ public class Mallory extends Principal {
 					} catch (NumberFormatException e) {
 						mal.print("to replay, type 'replay [message#]'");
 					}
+					break; 
 				}
 				else if (command.equals(CLOSE)) {
 					mal.print("Shutting Down Mallory...");
