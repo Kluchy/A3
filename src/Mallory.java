@@ -131,6 +131,7 @@ public class Mallory extends Principal {
 			try {
 				if (mal.host.getInput().ready()) {
 					byte[] line = mal.host.readRaw();
+					mal.print("message length: " + unpack(line).get(1).length);
 					//at this point, we got alice's message and need to store it
 					mal.addMessage(line);
 					mal.print("Alice's original message: " 

@@ -25,7 +25,8 @@ public class Alice extends Principal {
 					+ "plaintext message: '"+SEND+" [message]'\n\t"
 					+	"symmetric encryption: '"+SEND+sep+ENC+" [message]'\n\t"
 					+ "MAC tagging: '"+SEND+sep+MAC+" [message]'\n\t"
-					+ "Encryption+Tagging: '"+SEND+sep+ENC_MAC+" [message]'";
+					+ "Encryption+Tagging: '"+SEND+sep+ENC_MAC+" [message]'"
+					+ TRANSPORT+": '"+SEND_KEY;
 
 	public Alice(String portNumber) throws UnknownHostException, IOException, NoSuchAlgorithmException {
 		pubK = readPubKey(APUBFILE);
@@ -76,6 +77,11 @@ public class Alice extends Principal {
 				if (command.equals(SEND)) {
 					alice.send(alice,inList[1], AMCHANNEL);
 					alice.print("message successfully sent");
+				}
+				else if (command.equals(SEND_KEY)) {
+					alice.print("sending session key...");
+					alice.keyTransport("Bob>> ");
+					alice.print("session key sent");
 				}
 				else if (command.equals(CLOSE)) {
 					alice.print("Shutting Down Alice...");
