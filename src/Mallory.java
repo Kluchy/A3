@@ -131,7 +131,7 @@ public class Mallory extends Principal {
 
 		while (true) {
 			try {
-				if (mal.host.getInput().ready()) {
+				if (mal.host.getInput().available() > 0) {
 					mal.print("INPUT READY INPUT READY INPUT READY");
 					byte[] line = mal.host.readRaw();
 					mal.print("message length: " + line.length);

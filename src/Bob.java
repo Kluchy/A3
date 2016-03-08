@@ -37,9 +37,9 @@ public class Bob extends Principal {
 
 		//bob just prints whatever he receives...
 		while (true) {
-			BufferedReader in = b.host.getInput();
+			DataInputStream in = b.host.getInput();
 			try {
-				if (in.ready()) {
+				if (in.available() > 0) {
 					byte[] line = b.host.read();
 					b.print("message length: " + line.length);
 					if (areEqual(line, Util.ATTACK_FLAG)) {

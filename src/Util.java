@@ -1,3 +1,4 @@
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,8 +10,15 @@ public class Util {
 	static final String del = "|";
 	
 	/**
-	 * 
+	 * pre-condition packet size must fit within 8 bytes.
+	 * @param number
+	 * @return
 	 */
+	static byte[] size2Byte(byte[] packet) {
+		ByteBuffer size = ByteBuffer.allocate(8);
+		size.putInt(packet.length);
+		return size.array();
+	}
 	
 
 	/**

@@ -101,9 +101,9 @@ public class Server {
 			try {
 				byte[] in = new byte[8];
 				int msgSize = input.read(in);
+				System.out.println("msgSize : " + msgSize);
 				byte[] msg = new byte[msgSize];
 				input.read(msg, 0, msgSize);
-				List<byte[]> tmp = Util.secureUnpack(msg);
 				return Util.concat(in, msg);
 			} catch (IOException e) {
 				return null;

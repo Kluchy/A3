@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 
 public class Client {
 	private DataInputStream input;
@@ -25,7 +26,7 @@ public class Client {
 
 	public void send(byte[] m) throws IOException {		
 		byte[] packet = Util.securePack(numMessagesSent.toString().getBytes(), m);
-		packet = Util.concat((""+packet.length).getBytes(), packet);
+		packet = Util.concat(Util.size2Byte(packet), packet);
 		System.out.println(packet.length);
 		output.write(packet);
 		output.flush();
@@ -33,7 +34,7 @@ public class Client {
 	}
 	
 	public void sendRaw(byte[] m) throws IOException {
-		output.write(Util.concat(m, Util.TERMINATOR));
+		output.write(m);
 		output.flush();
 		numMessagesSent++;
 	}
