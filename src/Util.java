@@ -67,4 +67,26 @@ public class Util {
 		//		res.add(in.substring(indexOfDel+1).getBytes());
 		//		return res;
 	}
+	
+	static byte[] securePack(byte[] one, byte[] two) {
+		byte[] size1 = (""+one.length).getBytes();
+		byte[] size2 = (""+two.length).getBytes();
+		byte[] data = Util.concat(one, two);
+		byte[] metadata = pack(size1, pack(size2, data));
+		return metadata;
+	}
+	
+	static List<byte[]> secureUnpack(byte[] pack) {
+		List<byte[]> result = new ArrayList<byte[]>();
+		List<byte[]> temp = unpack(pack);
+		int size1 = Integer.parseInt(new String(temp.get(0)));
+		temp = unpack(temp.get(1));
+		int size2 = Integer.parseInt(new String(temp.get(0)));
+		byte[] data = temp.get(1);
+		byte[] one = Arrays.copyOfRange(data, 0, size1);
+		byte[] two = Arrays.copyOfRange(data, size1, size1 + size2);
+		result.add(one);
+		result.add(two);
+		return result;
+	}
 }

@@ -361,7 +361,7 @@ public class Principal {
 	}
 
 	protected byte[] decrypt(byte[] message) {
-		List<byte[]> temp = Util.unpack(message);
+		List<byte[]> temp = Util.secureUnpack(message);
 		int tempSize = temp.size();
 		byte[] in1 = temp.get(0);
 		if (tempSize == 1) {
@@ -567,10 +567,10 @@ public class Principal {
 		byte[] signed = sign(otherID.getBytes(),tA, cipher);
 		print("signature in data: " + new String(signed));
 		print("signature length: " + signed.length);
-		byte[] packet = Util.pack(TRANSPORT.getBytes(),
-				         Util.pack(otherID.getBytes(),
-						  Util.pack(tA.getBytes(),
-						   Util.pack(cipher, signed))));
+		byte[] packet = Util.securePack(TRANSPORT.getBytes(),
+				         Util.securePack(otherID.getBytes(),
+						  Util.securePack(tA.getBytes(),
+						   Util.securePack(cipher, signed))));
 		print("packet: " + new String(packet));
 		print("packet length: " + packet.length);
 		conn.send(packet);
@@ -627,7 +627,7 @@ public class Principal {
 		boolean verifies = false;
 		//		String myTimestamp = LocalDateTime.now().toString();
 		// unpack data
-		List<byte[]> temp = Util.unpack(data);
+		List<byte[]> temp = Util.secureUnpack(data);
 		byte[] id = temp.get(0);
 		print("id in data: " + new String(id));
 		print("id length: " + id.length);
@@ -637,7 +637,7 @@ public class Principal {
 //			return WRONG_COM.getBytes();
 //		}
 		// check range of timestamps: has to be within a second of send
-		temp = Util.unpack(temp.get(1));
+		temp = Util.secureUnpack(temp.get(1));
 		byte[] time = temp.get(0); // this is the timestamp
 		print("time in data: " + new String(time));
 		print("time length: " + time.length);
@@ -648,7 +648,7 @@ public class Principal {
 //				LocalDateTime.parse(new String(time)).plusSeconds(1))) {
 //			return WRONG_COM.getBytes();
 //		}
-		temp = Util.unpack(temp.get(1));
+		temp = Util.secureUnpack(temp.get(1));
 //		assert temp.size() == 2;
 //		if (temp.size() != 2) {
 //			return WRONG_COM.getBytes();
