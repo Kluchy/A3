@@ -61,7 +61,8 @@ public class Principal {
 	protected static final String SIGN_ALG = "SHA256withRSA";
 	// algorithm used to encrypt and decrypt (symmetric)
 	private static final String SYM_ENC = "AES/CBC/ISO10126Padding";
-	private static byte[] IV = readB("ivAB"); // used to decrypt with symmetric key
+	// used to decrypt with symmetric key
+	private static byte[] IV = readB("ivAB");
 	// algorithm used for generating symmetric key
 	private static final String SYM_ALG = "AES";
 	// algorithm used by MAC system
@@ -297,8 +298,8 @@ public class Principal {
 		byte[] cipher = null;
 		try {
 			Cipher crypto = Cipher.getInstance(SYM_ENC);
-			crypto.init(Cipher.ENCRYPT_MODE, sessionK1, new IvParameterSpec(IV));
-			//			IV = crypto.getIV();
+			crypto.init(Cipher.ENCRYPT_MODE, sessionK1,
+					                        new IvParameterSpec(IV));
 			cipher = crypto.doFinal(message.getBytes());
 			cipher = Util.securePack(ENC.getBytes(),cipher);
 		} catch (InvalidKeyException e) {
@@ -334,7 +335,8 @@ public class Principal {
 			Mac macEngine = Mac.getInstance(MAC_ALG);
 			macEngine.init(sessionK1);
 			macMessage = macEngine.doFinal(message);
-			macMessage = Util.securePack(MAC.getBytes(), Util.securePack(macMessage,message));
+			macMessage = Util.securePack(MAC.getBytes(),
+					          Util.securePack(macMessage,message));
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -345,7 +347,7 @@ public class Principal {
 		return macMessage;
 	}
 
-	/** TODO write
+	/**
 	 * @spec encrypts given message and applies 
 	 *          MAC on the resulting ciphertext
 	 * @param message
@@ -356,8 +358,10 @@ public class Principal {
 		byte[] packedCipher = enc(message);
 		byte[] cipher = Util.secureUnpack(packedCipher).get(1);
 		byte[] packedTag = mac(cipher);
-		byte[] tag = Util.secureUnpack(Util.secureUnpack(packedTag).get(1)).get(0);
-		return Util.securePack(ENC_MAC.getBytes(),Util.securePack(tag,cipher));
+		byte[] tag = Util.secureUnpack(
+				         Util.secureUnpack(packedTag).get(1)).get(0);
+		return Util.securePack(ENC_MAC.getBytes(),
+				               Util.securePack(tag,cipher));
 	}
 
 	protected byte[] decrypt(byte[] message) {
@@ -392,7 +396,7 @@ public class Principal {
 				byte[] plain = asymDec(cipher);
 				List<byte[]> plainSplit = Util.secureUnpack(plain);
 				byte[] key = plainSplit.get(1);
-				sessionK1 = new SecretKeySpec(key, 0, key.length, ENC_ALG);
+				sessionK1 = new SecretKeySpec(key, 0, key.length, SYM_ALG);
 				return "received session key".getBytes();
 			}
 		}
@@ -408,7 +412,6 @@ public class Principal {
 		byte[] plain = null;
 		try {
 			Cipher crypto = Cipher.getInstance(SYM_ENC);
-			print("sessionK1 for " + S + " is: " + sessionK1);
 			IvParameterSpec iv = new IvParameterSpec(IV);
 			crypto.init(Cipher.DECRYPT_MODE, sessionK1, iv);
 			plain = crypto.doFinal(cipher);
@@ -463,7 +466,8 @@ public class Principal {
 		byte[] tag = parts.get(0);
 		byte[] message = parts.get(1);
 		byte[] packedT = mac(message);
-		byte[] t = Util.secureUnpack(Util.secureUnpack(packedT).get(1)).get(0);
+		byte[] t = Util.secureUnpack(
+				          Util.secureUnpack(packedT).get(1)).get(0);
 		if (areEqual(tag,t)) {
 			return message;
 		}
@@ -512,22 +516,15 @@ public class Principal {
 		return plain;
 	}
 
-	/**TODO test + fix
+	/**
 	 * @spec applies asymmetric encryption to this principal's (Alice)
 	 *       primary session key (for intended use with Bob)
 	 * @return ciphertext produced
 	 */
 	protected byte[] asymEnc() {
 		byte[] cipher = null;
-		//		byte[] key = sessionKey.getEncoded();
-		//		byte[] id = S.getBytes();
-		//		byte[] message = new byte[id.length + key.length + 1];
-		//		int i=0;
-		//		while (i < S.getBytes().length) {
-		//			
-		//			i++;
-		//		}
-		byte[] message = Util.securePack(S.getBytes(), sessionK1.getEncoded());
+		byte[] message = Util.securePack(S.getBytes(),
+				              sessionK1.getEncoded());
 		try {
 			Cipher crypto = Cipher.getInstance(ENC_ALG);
 			crypto.init(Cipher.ENCRYPT_MODE, otherPubK1);
@@ -551,30 +548,30 @@ public class Principal {
 		return cipher;
 	}
 	/**
-	 * TODO test
+	 *
 	 * @param myID
 	 * @param otherID
 	 * @return
 	 * @throws IOException 
 	 */
 	protected void keyTransport(String otherID) throws IOException {
-		print("id in data: " + new String(otherID));
-		print("id length: " + otherID.length());
+//		print("id in data: " + new String(otherID));
+//		print("id length: " + otherID.length());
 		byte[] cipher = asymEnc();
-		print("cipher in data: " + new String(cipher));
-		print("cipher length: " + cipher.length);
+//		print("cipher in data: " + new String(cipher));
+//		print("cipher length: " + cipher.length);
 		String tA = LocalDateTime.now().toString();
-		print("time in data: " + new String(tA));
-		print("time length: " + tA.length());
+//		print("time in data: " + new String(tA));
+//		print("time length: " + tA.length());
 		byte[] signed = sign(otherID.getBytes(),tA, cipher);
-		print("signature in data: " + new String(signed));
-		print("signature length: " + signed.length);
+//		print("signature in data: " + new String(signed));
+//		print("signature length: " + signed.length);
 		byte[] packet = Util.securePack(TRANSPORT.getBytes(),
 				         Util.securePack(otherID.getBytes(),
 						  Util.securePack(tA.getBytes(),
 						   Util.securePack(cipher, signed))));
-		print("packet: " + new String(packet));
-		print("packet length: " + packet.length);
+//		print("packet: " + new String(packet));
+//		print("packet length: " + packet.length);
 		conn.send(packet);
 	}
 
@@ -590,13 +587,14 @@ public class Principal {
 	 * @throws SignatureException
 	 */
 	protected byte[] sign(byte[] otherID, String myTimestamp, 
-			byte[] cipher) {
+			                                       byte[] cipher) {
 		byte[] sig = null;
 		try {
 			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initSign(privK);
 			// add otherID and timestamp to cipher before signing
-			byte[] data = Util.securePack(otherID, Util.securePack(myTimestamp.getBytes(),cipher));
+			byte[] data = Util.securePack(otherID,
+					      Util.securePack(myTimestamp.getBytes(),cipher));
 			dsa.update(data);
 			sig = dsa.sign();
 			return sig;
@@ -631,37 +629,33 @@ public class Principal {
 		// unpack data
 		List<byte[]> temp = Util.secureUnpack(data);
 		byte[] id = temp.get(0);
-		print("id in data: " + new String(id));
-		print("id length: " + id.length);
-//		assert areEqual(S.getBytes(),id);
-//		assert temp.size() == 2;
-//		if (temp.size() != 2 || areEqual(S.getBytes(),id)) {
-//			return WRONG_COM.getBytes();
-//		}
+//		print("id in data: " + new String(id));
+//		print("id length: " + id.length);
+		if (temp.size() != 2 || !areEqual(S.getBytes(),id)) {
+			return PANIC.getBytes();
+		}
 		// check range of timestamps: has to be within a second of send
 		temp = Util.secureUnpack(temp.get(1));
 		byte[] time = temp.get(0); // this is the timestamp
-		print("time in data: " + new String(time));
-		print("time length: " + time.length);
-
-//		assert LocalDateTime.now().isBefore(
-//				LocalDateTime.parse(new String(time)).plusSeconds(1));
-//		if (temp.size() != 2 || LocalDateTime.now().isAfter(
-//				LocalDateTime.parse(new String(time)).plusSeconds(1))) {
-//			return WRONG_COM.getBytes();
-//		}
+//		print("time in data: " + new String(time));
+//		print("time length: " + time.length);
+		if (temp.size() != 2 || LocalDateTime.now().isAfter(
+				LocalDateTime.parse(new String(time)).plusSeconds(30))) {
+			print("Expired timestamp. Discarding message");
+			return PANIC.getBytes();
+		}
 		temp = Util.secureUnpack(temp.get(1));
-//		assert temp.size() == 2;
-//		if (temp.size() != 2) {
-//			return WRONG_COM.getBytes();
-//		}
+		if (temp.size() != 2) {
+			return PANIC.getBytes();
+		}
 		byte[] cipher = temp.get(0);
-		print("cipher in data: " + new String(cipher));
-		print("cipher length: " + cipher.length);
+//		print("cipher in data: " + new String(cipher));
+//		print("cipher length: " + cipher.length);
 		byte[] signed = temp.get(1);
-		print("signature in data: " + new String(signed));
-		print("signature length: " + signed.length);
-		byte[] message = Util.securePack(id, Util.securePack(time, cipher));
+//		print("signature in data: " + new String(signed));
+//		print("signature length: " + signed.length);
+		byte[] message = Util.securePack(id,
+				              Util.securePack(time, cipher));
 		try {
 			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initVerify(otherPubK1);
@@ -673,7 +667,6 @@ public class Principal {
 			if (verifies) {
 				return cipher;
 			} else {
-//				return cipher;
 				return PANIC.getBytes();
 			}
 		} catch (NoSuchAlgorithmException e) {

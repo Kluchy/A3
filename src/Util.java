@@ -97,37 +97,33 @@ public class Util {
 		res.add(Arrays.copyOfRange(bytes, 0, targetIndex));
 		res.add(Arrays.copyOfRange(bytes, targetIndex+1, bytes.length));
 		return res;
-		//		String in = new String(bytes);
-		//		int indexOfDel = in.indexOf(del);
-		//		if (indexOfDel == -1) {
-		//			res.add(bytes);
-		//			return res;
-		//		}
-		//		res.add(in.substring(0,indexOfDel).getBytes());
-		//		res.add(in.substring(indexOfDel+1).getBytes());
-		//		return res;
 	}
 
 	static byte[] securePack(byte[] one, byte[] two) {
 		byte[] size1 = size2Byte(one.length);
 		byte[] size2 = size2Byte(two.length);
 		byte[] data = concat(one, two);
-		//		byte[] metadata = concat(size1, concat(size2,data));
 		byte[] metadata = concat(size1, concat(size2,data));
 		return metadata;
 	}
 
 	static List<byte[]> secureUnpack(byte[] pack) {
 		List<byte[]> result = new ArrayList<byte[]>();
-		byte[] temp = Arrays.copyOfRange(pack, 0, HEAD_FIELD_SIZE);//unpack(pack);
-		int size1 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
-		temp = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE, HEAD_FIELD_SIZE*2);//unpack(temp.get(1));
-		int size2 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
-		byte[] data = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE*2, HEAD_FIELD_SIZE*2 + size1+size2);//temp.get(1);
-		byte[] one = Arrays.copyOfRange(data, 0, size1);
-		byte[] two = Arrays.copyOfRange(data, size1, size1 + size2);
-		result.add(one);
-		result.add(two);
+		try {
+			byte[] temp = Arrays.copyOfRange(pack, 0, HEAD_FIELD_SIZE);//unpack(pack);
+			int size1 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
+			temp = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE, HEAD_FIELD_SIZE*2);//unpack(temp.get(1));
+			int size2 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
+			byte[] data = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE*2, HEAD_FIELD_SIZE*2 + size1+size2);//temp.get(1);
+			byte[] one = Arrays.copyOfRange(data, 0, size1);
+			byte[] two = Arrays.copyOfRange(data, size1, size1 + size2);
+			result.add(one);
+			result.add(two);
+		} catch (NumberFormatException e) {
+			result.add(pack);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			result.add(pack);
+		}
 		return result;
 	}
 }
