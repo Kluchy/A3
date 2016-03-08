@@ -83,7 +83,7 @@ public class Server {
 		try {
 			byte[] in = input.readLine().getBytes();
 //			in = Util.concat(in, input.readLine().getBytes());
-			List<byte[]> tmp = Principal.unpack(in);
+			List<byte[]> tmp = Util.unpack(in);
 			int size = Integer.parseInt(new String(tmp.get(0)));
 			if (tmp.get(1).length >= size) {
 				in = Arrays.copyOfRange(tmp.get(1), 0, size);
@@ -93,7 +93,7 @@ public class Server {
 			}
 //			in = Principal.pack((""+in.length).getBytes(), in);
 //			in = Arrays.copyOfRange(tmp.get(1), 0, size);
-			List<byte[]> temp = Principal.unpack(in);
+			List<byte[]> temp = Util.unpack(in);
 			// get message number
 			int num = Integer.parseInt(new String(temp.get(0)));
 			if (num >= numMessagesReceived) {
@@ -115,7 +115,8 @@ public class Server {
 		public byte[] readRaw() {
 			try {
 				byte[] in = input.readLine().getBytes();
-				List<byte[]> tmp = Principal.unpack(in);
+				System.out.println("receiving: " + new String(in));
+				List<byte[]> tmp = Util.unpack(in);
 				int size = Integer.parseInt(new String(tmp.get(0)));
 				if (tmp.get(1).length >= size) {
 					in = Arrays.copyOfRange(tmp.get(1), 0, size);
@@ -123,7 +124,7 @@ public class Server {
 					in = Util.concat(tmp.get(1), input.readLine().getBytes());
 					in = Arrays.copyOfRange(tmp.get(1), 0, size);
 				}
-				in = Principal.pack((""+in.length).getBytes(), in);
+				in = Util.pack((""+in.length).getBytes(), in);
 //				in = Arrays.copyOfRange(tmp.get(1), 0, size);
 				System.out.println(in.length);
 				return in;

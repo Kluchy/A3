@@ -45,8 +45,6 @@ public class Principal {
 	protected static final String WRONG_COM = "Warning: unrecongizable packet";
 	// used for I/O
 	protected static final String sep = " ";
-	// used for packaging data in crypto algorithms
-	protected static final String del = "|";
 	// commands accepted by a Principal
 	protected static final String CLOSE = "quit";
 	protected static final String SEND = "send";
@@ -60,6 +58,7 @@ public class Principal {
 	// algorithm used for asymmetric encryption in key transport
 	private static final String ENC_ALG =
 			"RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+	protected static final String SIGN_ALG = "SHA256withRSA";
 	// algorithm used to encrypt and decrypt (symmetric)
 	private static final String SYM_ENC = "AES/CBC/ISO10126Padding";
 	private static byte[] IV = readB("ivAB"); // used to decrypt with symmetric key
@@ -157,54 +156,6 @@ public class Principal {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-
-
-	/**
-	 * @spec intended for transferring data through TCP
-	 * @param one
-	 * @param two
-	 * @return byte[ one + 'del' + two ]
-	 */
-	protected static byte[] pack(byte[] one, byte[] two) {
-		byte[] oneAnd = Util.concat(one, del.getBytes());
-		return Util.concat(oneAnd, two);
-	}
-
-	/**
-	 * @spec used to receive data from TCP connection
-	 * @param bytes
-	 * @return bytes, if bytes does not contain the 'del' delimiter or
-	 *         List< half1, half2 > such that half1 + 'del' + half2 = bytes 
-	 */
-	protected static List<byte[]> unpack(byte[] bytes) {
-		ArrayList<byte[]> res = new ArrayList<byte[]>();
-		byte target = del.getBytes()[0];
-		int targetIndex = -1;
-		for (int i = 0; i < bytes.length; i++) {
-			byte b = bytes[i];
-			if (b == target) {
-				targetIndex = i;
-				break;
-			}
-		}
-		if (targetIndex == -1) {
-			res.add(bytes);
-			return res;
-		}
-		res.add(Arrays.copyOfRange(bytes, 0, targetIndex));
-		res.add(Arrays.copyOfRange(bytes, targetIndex+1, bytes.length));
-		return res;
-		//		String in = new String(bytes);
-		//		int indexOfDel = in.indexOf(del);
-		//		if (indexOfDel == -1) {
-		//			res.add(bytes);
-		//			return res;
-		//		}
-		//		res.add(in.substring(0,indexOfDel).getBytes());
-		//		res.add(in.substring(indexOfDel+1).getBytes());
-		//		return res;
 	}
 
 	/**
@@ -349,7 +300,7 @@ public class Principal {
 			crypto.init(Cipher.ENCRYPT_MODE, sessionK1, new IvParameterSpec(IV));
 			//			IV = crypto.getIV();
 			cipher = crypto.doFinal(message.getBytes());
-			cipher = pack(ENC.getBytes(),cipher);
+			cipher = Util.pack(ENC.getBytes(),cipher);
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -383,7 +334,7 @@ public class Principal {
 			Mac macEngine = Mac.getInstance(MAC_ALG);
 			macEngine.init(sessionK1);
 			macMessage = macEngine.doFinal(message);
-			macMessage = pack(MAC.getBytes(), pack(macMessage,message));
+			macMessage = Util.pack(MAC.getBytes(), Util.pack(macMessage,message));
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -403,14 +354,14 @@ public class Principal {
 	 */
 	protected byte[] encThenMac(String message) {
 		byte[] packedCipher = enc(message);
-		byte[] cipher = unpack(packedCipher).get(1);
+		byte[] cipher = Util.unpack(packedCipher).get(1);
 		byte[] packedTag = mac(cipher);
-		byte[] tag = unpack(unpack(packedTag).get(1)).get(0);
-		return pack(ENC_MAC.getBytes(),pack(tag,cipher));
+		byte[] tag = Util.unpack(Util.unpack(packedTag).get(1)).get(0);
+		return Util.pack(ENC_MAC.getBytes(),Util.pack(tag,cipher));
 	}
 
 	protected byte[] decrypt(byte[] message) {
-		List<byte[]> temp = unpack(message);
+		List<byte[]> temp = Util.unpack(message);
 		int tempSize = temp.size();
 		byte[] in1 = temp.get(0);
 		if (tempSize == 1) {
@@ -503,14 +454,14 @@ public class Principal {
 	 * @return = tag was produced by MACking message
 	 */
 	protected byte[] deMac(byte[] cipher) {
-		List<byte[]> parts = unpack(cipher);
+		List<byte[]> parts = Util.unpack(cipher);
 		if (parts.size() == 1) {
 			return WRONG_ENC.getBytes();
 		}
 		byte[] tag = parts.get(0);
 		byte[] message = parts.get(1);
 		byte[] packedT = mac(message);
-		byte[] t = unpack(unpack(packedT).get(1)).get(0);
+		byte[] t = Util.unpack(Util.unpack(packedT).get(1)).get(0);
 		if (areEqual(tag,t)) {
 			return message;
 		}
@@ -574,7 +525,7 @@ public class Principal {
 		//			
 		//			i++;
 		//		}
-		byte[] message = pack(S.getBytes(), sessionK1.getEncoded());
+		byte[] message = Util.pack(S.getBytes(), sessionK1.getEncoded());
 		try {
 			Cipher crypto = Cipher.getInstance(ENC_ALG);
 			crypto.init(Cipher.ENCRYPT_MODE, otherPubK1);
@@ -605,12 +556,21 @@ public class Principal {
 	 * @throws IOException 
 	 */
 	protected void keyTransport(String otherID) throws IOException {
+		print("id in data: " + new String(otherID));
+		print("id length: " + otherID.length());
 		byte[] cipher = asymEnc();
+		print("cipher in data: " + new String(cipher));
+		print("cipher length: " + cipher.length);
 		String tA = LocalDateTime.now().toString();
+		print("time in data: " + new String(tA));
+		print("time length: " + tA.length());
 		byte[] signed = sign(otherID.getBytes(),tA, cipher);
-		byte[] packet = pack(TRANSPORT.getBytes(),
-				         pack(otherID.getBytes(),
-						  pack(tA.getBytes(),pack(cipher, signed))));
+		print("signature in data: " + new String(signed));
+		print("signature length: " + signed.length);
+		byte[] packet = Util.pack(TRANSPORT.getBytes(),
+				         Util.pack(otherID.getBytes(),
+						  Util.pack(tA.getBytes(),
+						   Util.pack(cipher, signed))));
 		print("packet: " + new String(packet));
 		print("packet length: " + packet.length);
 		conn.send(packet);
@@ -631,10 +591,10 @@ public class Principal {
 			byte[] cipher) {
 		byte[] sig = null;
 		try {
-			Signature dsa = Signature.getInstance("SHA256withRSA");
+			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initSign(privK);
 			// add otherID and timestamp to cipher before signing
-			byte[] data = pack(otherID, pack(myTimestamp.getBytes(),cipher));
+			byte[] data = Util.pack(otherID, Util.pack(myTimestamp.getBytes(),cipher));
 			dsa.update(data);
 			sig = dsa.sign();
 			return sig;
@@ -667,7 +627,7 @@ public class Principal {
 		boolean verifies = false;
 		//		String myTimestamp = LocalDateTime.now().toString();
 		// unpack data
-		List<byte[]> temp = unpack(data);
+		List<byte[]> temp = Util.unpack(data);
 		byte[] id = temp.get(0);
 		print("id in data: " + new String(id));
 		print("id length: " + id.length);
@@ -677,7 +637,7 @@ public class Principal {
 //			return WRONG_COM.getBytes();
 //		}
 		// check range of timestamps: has to be within a second of send
-		temp = unpack(temp.get(1));
+		temp = Util.unpack(temp.get(1));
 		byte[] time = temp.get(0); // this is the timestamp
 		print("time in data: " + new String(time));
 		print("time length: " + time.length);
@@ -688,7 +648,7 @@ public class Principal {
 //				LocalDateTime.parse(new String(time)).plusSeconds(1))) {
 //			return WRONG_COM.getBytes();
 //		}
-		temp = unpack(temp.get(1));
+		temp = Util.unpack(temp.get(1));
 //		assert temp.size() == 2;
 //		if (temp.size() != 2) {
 //			return WRONG_COM.getBytes();
@@ -699,9 +659,9 @@ public class Principal {
 		byte[] signed = temp.get(1);
 		print("signature in data: " + new String(signed));
 		print("signature length: " + signed.length);
-		byte[] message = pack(id, pack(time, cipher));
+		byte[] message = Util.pack(id, Util.pack(time, cipher));
 		try {
-			Signature dsa = Signature.getInstance("SHA256withRSA");
+			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initVerify(otherPubK1);
 			dsa.update(message);
 //			System.out.println("message length: "+message.length);
