@@ -133,7 +133,7 @@ public class Mallory extends Principal {
 			try {
 				if (mal.host.getInput().ready()) {
 					byte[] line = mal.host.readRaw();
-					mal.print("message length: " + unpack(line).get(1).length);
+					mal.print("message length: " + line.length);
 					//at this point, we got alice's message and need to store it
 					mal.addMessage(line);
 					mal.print("Alice's original message: " 
@@ -152,7 +152,7 @@ public class Mallory extends Principal {
 				System.out.println(e);
 			}
 			catch (NumberFormatException e) {
-				System.out.println(e);
+				System.out.println(e.getMessage());
 			}
 			catch (ArrayIndexOutOfBoundsException e) {
 				System.out.println(e);

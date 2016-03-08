@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -69,10 +70,10 @@ public class Server {
 		socket.close();
 	}
 
-	public void send(byte[] m) throws IOException {
-		output.write(Util.concat(m, Util.TERMINATOR));
-		output.flush();
-	}
+//	public void send(byte[] m) throws IOException {
+//		output.write(Util.concat(m, Util.TERMINATOR));
+//		output.flush();
+//	}
 
 	/**
 	 * @throws NumberFormatException - if message number not included
@@ -81,6 +82,10 @@ public class Server {
 	public byte[] read() {
 		try {
 			byte[] in = input.readLine().getBytes();
+			in = Util.concat(in, input.readLine().getBytes());
+			List<byte[]> tmp = Principal.unpack(in);
+			int size = Integer.parseInt(new String(tmp.get(0)));
+			in = Arrays.copyOfRange(tmp.get(1), 0, size);
 			List<byte[]> temp = Principal.unpack(in);
 			// get message number
 			int num = Integer.parseInt(new String(temp.get(0)));
@@ -103,6 +108,17 @@ public class Server {
 		public byte[] readRaw() {
 			try {
 				byte[] in = input.readLine().getBytes();
+				List<byte[]> tmp = Principal.unpack(in);
+				int size = Integer.parseInt(new String(tmp.get(0)));
+				if (tmp.get(1).length >= size) {
+					in = Arrays.copyOfRange(tmp.get(1), 0, size);
+				} else {
+					in = Util.concat(tmp.get(1), input.readLine().getBytes());
+					in = Arrays.copyOfRange(tmp.get(1), 0, size);
+				}
+				in = Principal.pack((""+in.length).getBytes(), in);
+//				in = Arrays.copyOfRange(tmp.get(1), 0, size);
+				System.out.println(in.length);
 				return in;
 			} catch (IOException e) {
 				return null;

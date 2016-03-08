@@ -25,7 +25,7 @@ public class Alice extends Principal {
 					+ "plaintext message: '"+SEND+" [message]'\n\t"
 					+	"symmetric encryption: '"+SEND+sep+ENC+" [message]'\n\t"
 					+ "MAC tagging: '"+SEND+sep+MAC+" [message]'\n\t"
-					+ "Encryption+Tagging: '"+SEND+sep+ENC_MAC+" [message]'"
+					+ "Encryption+Tagging: '"+SEND+sep+ENC_MAC+" [message]'\n\t"
 					+ TRANSPORT+": '"+SEND_KEY;
 
 	public Alice(String portNumber) throws UnknownHostException, IOException, NoSuchAlgorithmException {

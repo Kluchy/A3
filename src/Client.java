@@ -30,6 +30,8 @@ public class Client {
 	public void send(byte[] m) throws IOException {
 		byte[] packet = Util.concat(m, Util.TERMINATOR);
 		packet = Principal.pack(numMessagesSent.toString().getBytes(), packet);
+		packet = Principal.pack((""+packet.length).getBytes(), packet);
+		System.out.println(packet.length);
 		output.write(packet);
 		output.flush();
 		numMessagesSent++;

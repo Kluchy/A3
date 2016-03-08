@@ -608,8 +608,9 @@ public class Principal {
 		String tA = LocalDateTime.now().toString();
 		byte[] signed = sign(otherID.getBytes(),tA, cipher);
 		byte[] packet = pack(TRANSPORT.getBytes(),
-				pack(otherID.getBytes(),
-						pack(tA.getBytes(),pack(cipher, signed))));
+				         pack(otherID.getBytes(),
+						  pack(tA.getBytes(),pack(cipher, signed))));
+		print("packet: " + new String(packet));
 		print("packet length: " + packet.length);
 		conn.send(packet);
 	}
