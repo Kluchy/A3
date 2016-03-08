@@ -433,6 +433,7 @@ public class Principal {
 		if (areEqual(TRANSPORT.getBytes(), in1)) {
 			// must be receiving a key
 			byte[] cipher = verifySign(in2);
+			print("output of verifySign: " + new String(cipher));
 			if (areEqual(cipher, PANIC.getBytes())) {
 				return cipher;
 			} else {
@@ -668,27 +669,36 @@ public class Principal {
 		// unpack data
 		List<byte[]> temp = unpack(data);
 		byte[] id = temp.get(0);
-		assert areEqual(S.getBytes(),id);
-		assert temp.size() == 2;
-		if (temp.size() != 2 || areEqual(S.getBytes(),id)) {
-			return WRONG_COM.getBytes();
-		}
+		print("id in data: " + new String(id));
+		print("id length: " + id.length);
+//		assert areEqual(S.getBytes(),id);
+//		assert temp.size() == 2;
+//		if (temp.size() != 2 || areEqual(S.getBytes(),id)) {
+//			return WRONG_COM.getBytes();
+//		}
 		// check range of timestamps: has to be within a second of send
 		temp = unpack(temp.get(1));
 		byte[] time = temp.get(0); // this is the timestamp
-		assert LocalDateTime.now().isBefore(
-				LocalDateTime.parse(new String(time)).plusSeconds(1));
-		if (temp.size() != 2 || LocalDateTime.now().isAfter(
-				LocalDateTime.parse(new String(time)).plusSeconds(1))) {
-			return WRONG_COM.getBytes();
-		}
+		print("time in data: " + new String(time));
+		print("time length: " + time.length);
+
+//		assert LocalDateTime.now().isBefore(
+//				LocalDateTime.parse(new String(time)).plusSeconds(1));
+//		if (temp.size() != 2 || LocalDateTime.now().isAfter(
+//				LocalDateTime.parse(new String(time)).plusSeconds(1))) {
+//			return WRONG_COM.getBytes();
+//		}
 		temp = unpack(temp.get(1));
-		assert temp.size() == 2;
-		if (temp.size() != 2) {
-			return WRONG_COM.getBytes();
-		}
+//		assert temp.size() == 2;
+//		if (temp.size() != 2) {
+//			return WRONG_COM.getBytes();
+//		}
 		byte[] cipher = temp.get(0);
+		print("cipher in data: " + new String(cipher));
+		print("cipher length: " + cipher.length);
 		byte[] signed = temp.get(1);
+		print("signature in data: " + new String(signed));
+		print("signature length: " + signed.length);
 		byte[] message = pack(id, pack(time, cipher));
 		try {
 			Signature dsa = Signature.getInstance("SHA256withRSA");
@@ -697,7 +707,7 @@ public class Principal {
 //			System.out.println("message length: "+message.length);
 //			System.out.println("signature length: "+signed.length);
 			verifies = dsa.verify(signed);
-			System.out.println("signature verifies: " + verifies);
+			print("signature verifies: " + verifies);
 			if (verifies) {
 				return cipher;
 			} else {
