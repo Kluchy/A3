@@ -1,32 +1,26 @@
-
-
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.List;
 
 
 public class Server {	
 	
-	private BufferedReader input;
+	private DataInputStream input;
 	private DataOutputStream output;
 	private ServerSocket socket;
 	private Socket clientSocket;
 	private int numMessagesReceived = 0;
 
 	
-	public BufferedReader getInput() {
+	public DataInputStream getInput() {
 		return input;
 	}
 
-	public void setInput(BufferedReader input) {
+	public void setInput(DataInputStream input) {
 		this.input = input;
 	}
 
@@ -58,8 +52,7 @@ public class Server {
 		int port = Integer.parseInt(portNumber);
 		socket = new ServerSocket(port);
 		clientSocket = socket.accept();
-		input = new BufferedReader(new InputStreamReader(
-				clientSocket.getInputStream()));
+		input = new DataInputStream(clientSocket.getInputStream());
 		output = new DataOutputStream(clientSocket.getOutputStream());
 	}
 
@@ -81,25 +74,17 @@ public class Server {
 	 */
 	public byte[] read() {
 		try {
-			byte[] in = input.readLine().getBytes();
-//			in = Util.concat(in, input.readLine().getBytes());
-			List<byte[]> tmp = Util.unpack(in);
-			int size = Integer.parseInt(new String(tmp.get(0)));
-			if (tmp.get(1).length >= size) {
-				in = Arrays.copyOfRange(tmp.get(1), 0, size);
-			} else {
-				in = Util.concat(tmp.get(1), input.readLine().getBytes());
-				in = Arrays.copyOfRange(tmp.get(1), 0, size);
-			}
-//			in = Principal.pack((""+in.length).getBytes(), in);
-//			in = Arrays.copyOfRange(tmp.get(1), 0, size);
-			List<byte[]> temp = Util.unpack(in);
-			// get message number
-			int num = Integer.parseInt(new String(temp.get(0)));
-			if (num >= numMessagesReceived) {
+			byte[] in = new byte[8];
+			int msgSize = input.read(in);
+			byte[] msg = new byte[msgSize];
+			input.read(msg, 0, msgSize);
+			List<byte[]> tmp = Util.secureUnpack(msg);
+			tmp = Util.secureUnpack(msg);
+			int msgNumber = Integer.parseInt(new String(tmp.get(0)));
+			if (msgNumber >= numMessagesReceived) {
 				// set to the follower of the highest index received.
-				numMessagesReceived = num + 1;
-				return temp.get(1);
+				numMessagesReceived = msgNumber + 1;
+				return tmp.get(1);
 			} else {
 				return Util.ATTACK_FLAG;
 			}
@@ -114,20 +99,12 @@ public class Server {
 		 */
 		public byte[] readRaw() {
 			try {
-				byte[] in = input.readLine().getBytes();
-				System.out.println("receiving: " + new String(in));
-				List<byte[]> tmp = Util.unpack(in);
-				int size = Integer.parseInt(new String(tmp.get(0)));
-				if (tmp.get(1).length >= size) {
-					in = Arrays.copyOfRange(tmp.get(1), 0, size);
-				} else {
-					in = Util.concat(tmp.get(1), input.readLine().getBytes());
-					in = Arrays.copyOfRange(tmp.get(1), 0, size);
-				}
-				in = Util.pack((""+in.length).getBytes(), in);
-//				in = Arrays.copyOfRange(tmp.get(1), 0, size);
-				System.out.println(in.length);
-				return in;
+				byte[] in = new byte[8];
+				int msgSize = input.read(in);
+				byte[] msg = new byte[msgSize];
+				input.read(msg, 0, msgSize);
+				List<byte[]> tmp = Util.secureUnpack(msg);
+				return Util.concat(in, msg);
 			} catch (IOException e) {
 				return null;
 			}

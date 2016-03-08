@@ -7,6 +7,11 @@ public class Util {
 	static final byte[] ATTACK_FLAG = "%%@tTaCk_fLaG%%".getBytes();
 	// used for packaging data in crypto algorithms
 	static final String del = "|";
+	
+	/**
+	 * 
+	 */
+	
 
 	/**
 	 * @spec Helper

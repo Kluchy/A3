@@ -1,14 +1,11 @@
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class Client {
-	private BufferedReader input;
+	private DataInputStream input;
 	private DataOutputStream output;
 	private Socket socket;
 	private Integer numMessagesSent = 0;
@@ -16,8 +13,7 @@ public class Client {
 	public Client(String portNumber) throws UnknownHostException, IOException {
 		int port = Integer.parseInt(portNumber);
 		socket = new Socket("localhost", port);
-		input = new BufferedReader(new InputStreamReader(
-				socket.getInputStream()));
+		input = new DataInputStream(socket.getInputStream());
 		output = new DataOutputStream(socket.getOutputStream());
 	}
 
@@ -27,10 +23,9 @@ public class Client {
 		socket.close();
 	}
 
-	public void send(byte[] m) throws IOException {
-		byte[] packet = Util.concat(m, Util.TERMINATOR);
-		packet = Util.pack(numMessagesSent.toString().getBytes(), packet);
-		packet = Util.pack((""+packet.length).getBytes(), packet);
+	public void send(byte[] m) throws IOException {		
+		byte[] packet = Util.securePack(numMessagesSent.toString().getBytes(), m);
+		packet = Util.concat((""+packet.length).getBytes(), packet);
 		System.out.println(packet.length);
 		output.write(packet);
 		output.flush();
