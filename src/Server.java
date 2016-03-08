@@ -82,10 +82,17 @@ public class Server {
 	public byte[] read() {
 		try {
 			byte[] in = input.readLine().getBytes();
-			in = Util.concat(in, input.readLine().getBytes());
+//			in = Util.concat(in, input.readLine().getBytes());
 			List<byte[]> tmp = Principal.unpack(in);
 			int size = Integer.parseInt(new String(tmp.get(0)));
-			in = Arrays.copyOfRange(tmp.get(1), 0, size);
+			if (tmp.get(1).length >= size) {
+				in = Arrays.copyOfRange(tmp.get(1), 0, size);
+			} else {
+				in = Util.concat(tmp.get(1), input.readLine().getBytes());
+				in = Arrays.copyOfRange(tmp.get(1), 0, size);
+			}
+//			in = Principal.pack((""+in.length).getBytes(), in);
+//			in = Arrays.copyOfRange(tmp.get(1), 0, size);
 			List<byte[]> temp = Principal.unpack(in);
 			// get message number
 			int num = Integer.parseInt(new String(temp.get(0)));

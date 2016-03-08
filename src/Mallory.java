@@ -152,7 +152,7 @@ public class Mallory extends Principal {
 				System.out.println(e);
 			}
 			catch (NumberFormatException e) {
-				System.out.println(e.getMessage());
+				e.printStackTrace();
 			}
 			catch (ArrayIndexOutOfBoundsException e) {
 				System.out.println(e);
