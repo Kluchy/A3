@@ -74,10 +74,12 @@ public class Server {
 	 */
 	public byte[] read() {
 		try {
-			byte[] in = new byte[8];
-			int msgSize = input.read(in);
+			byte[] in = new byte[4];
+			readAll(in.length, in);
+			int msgSize = Util.byte2Int(in);
+			System.out.println("message Size: " + msgSize);
 			byte[] msg = new byte[msgSize];
-			input.read(msg, 0, msgSize);
+			readAll(msgSize,msg);
 			List<byte[]> tmp = Util.secureUnpack(msg);
 			tmp = Util.secureUnpack(msg);
 			int msgNumber = Integer.parseInt(new String(tmp.get(0)));
@@ -99,14 +101,24 @@ public class Server {
 		 */
 		public byte[] readRaw() {
 			try {
-				byte[] in = new byte[8];
-				int msgSize = input.read(in);
+				byte[] in = new byte[4];
+				readAll(in.length, in);
+				int msgSize = Util.byte2Int(in);
+				// in contains THE BYTE ARRAY representing the size of the msg.
+//				int msgSize = Integer.parseInt(new String(in));
 				System.out.println("msgSize : " + msgSize);
 				byte[] msg = new byte[msgSize];
-				input.read(msg, 0, msgSize);
+				readAll(msgSize,msg);
 				return Util.concat(in, msg);
 			} catch (IOException e) {
 				return null;
+			}
+		}
+		
+		private void readAll(int numBytes, byte[] target) throws IOException {
+			int numRead = 0;
+			while (numRead < numBytes) {
+				numRead += input.read(target,numRead,numBytes-numRead);
 			}
 		}
 
