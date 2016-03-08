@@ -300,7 +300,7 @@ public class Principal {
 			crypto.init(Cipher.ENCRYPT_MODE, sessionK1, new IvParameterSpec(IV));
 			//			IV = crypto.getIV();
 			cipher = crypto.doFinal(message.getBytes());
-			cipher = Util.pack(ENC.getBytes(),cipher);
+			cipher = Util.securePack(ENC.getBytes(),cipher);
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -334,7 +334,7 @@ public class Principal {
 			Mac macEngine = Mac.getInstance(MAC_ALG);
 			macEngine.init(sessionK1);
 			macMessage = macEngine.doFinal(message);
-			macMessage = Util.pack(MAC.getBytes(), Util.pack(macMessage,message));
+			macMessage = Util.securePack(MAC.getBytes(), Util.securePack(macMessage,message));
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -354,10 +354,10 @@ public class Principal {
 	 */
 	protected byte[] encThenMac(String message) {
 		byte[] packedCipher = enc(message);
-		byte[] cipher = Util.unpack(packedCipher).get(1);
+		byte[] cipher = Util.secureUnpack(packedCipher).get(1);
 		byte[] packedTag = mac(cipher);
-		byte[] tag = Util.unpack(Util.unpack(packedTag).get(1)).get(0);
-		return Util.pack(ENC_MAC.getBytes(),Util.pack(tag,cipher));
+		byte[] tag = Util.secureUnpack(Util.secureUnpack(packedTag).get(1)).get(0);
+		return Util.securePack(ENC_MAC.getBytes(),Util.securePack(tag,cipher));
 	}
 
 	protected byte[] decrypt(byte[] message) {
@@ -386,13 +386,13 @@ public class Principal {
 			byte[] cipher = verifySign(in2);
 			print("output of verifySign: " + new String(cipher));
 			if (areEqual(cipher, PANIC.getBytes())) {
-				byte[] plain = asymDec(cipher);
-				sessionK1 = new SecretKeySpec(plain, 0, plain.length, ENC_ALG);
 				return cipher;
 			} else {
 				// extract key and store
 				byte[] plain = asymDec(cipher);
-				sessionK1 = new SecretKeySpec(plain, 0, plain.length, ENC_ALG);
+				List<byte[]> plainSplit = Util.secureUnpack(plain);
+				byte[] key = plainSplit.get(1);
+				sessionK1 = new SecretKeySpec(key, 0, key.length, ENC_ALG);
 				return "received session key".getBytes();
 			}
 		}
@@ -456,14 +456,14 @@ public class Principal {
 	 * @return = tag was produced by MACking message
 	 */
 	protected byte[] deMac(byte[] cipher) {
-		List<byte[]> parts = Util.unpack(cipher);
+		List<byte[]> parts = Util.secureUnpack(cipher);
 		if (parts.size() == 1) {
 			return WRONG_ENC.getBytes();
 		}
 		byte[] tag = parts.get(0);
 		byte[] message = parts.get(1);
 		byte[] packedT = mac(message);
-		byte[] t = Util.unpack(Util.unpack(packedT).get(1)).get(0);
+		byte[] t = Util.secureUnpack(Util.secureUnpack(packedT).get(1)).get(0);
 		if (areEqual(tag,t)) {
 			return message;
 		}
@@ -527,7 +527,7 @@ public class Principal {
 		//			
 		//			i++;
 		//		}
-		byte[] message = Util.pack(S.getBytes(), sessionK1.getEncoded());
+		byte[] message = Util.securePack(S.getBytes(), sessionK1.getEncoded());
 		try {
 			Cipher crypto = Cipher.getInstance(ENC_ALG);
 			crypto.init(Cipher.ENCRYPT_MODE, otherPubK1);
@@ -596,7 +596,7 @@ public class Principal {
 			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initSign(privK);
 			// add otherID and timestamp to cipher before signing
-			byte[] data = Util.pack(otherID, Util.pack(myTimestamp.getBytes(),cipher));
+			byte[] data = Util.securePack(otherID, Util.securePack(myTimestamp.getBytes(),cipher));
 			dsa.update(data);
 			sig = dsa.sign();
 			return sig;
@@ -661,7 +661,7 @@ public class Principal {
 		byte[] signed = temp.get(1);
 		print("signature in data: " + new String(signed));
 		print("signature length: " + signed.length);
-		byte[] message = Util.pack(id, Util.pack(time, cipher));
+		byte[] message = Util.securePack(id, Util.securePack(time, cipher));
 		try {
 			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initVerify(otherPubK1);
@@ -673,8 +673,8 @@ public class Principal {
 			if (verifies) {
 				return cipher;
 			} else {
-				return cipher;
-//				return PANIC.getBytes();
+//				return cipher;
+				return PANIC.getBytes();
 			}
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block

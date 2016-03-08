@@ -1,10 +1,9 @@
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Util {
-	static final byte[] TERMINATOR = "\n".getBytes();
+	static final int HEAD_FIELD_SIZE = 4;
 	static final byte[] ATTACK_FLAG = "%%@tTaCk_fLaG%%".getBytes();
 	// used for packaging data in crypto algorithms
 	static final String del = "|";
@@ -112,19 +111,19 @@ public class Util {
 	static byte[] securePack(byte[] one, byte[] two) {
 		byte[] size1 = size2Byte(one.length);
 		byte[] size2 = size2Byte(two.length);
-		byte[] data = Util.concat(one, two);
+		byte[] data = concat(one, two);
 		//		byte[] metadata = concat(size1, concat(size2,data));
-		byte[] metadata = pack(size1, pack(size2,data));
+		byte[] metadata = concat(size1, concat(size2,data));
 		return metadata;
 	}
 
 	static List<byte[]> secureUnpack(byte[] pack) {
 		List<byte[]> result = new ArrayList<byte[]>();
-		List<byte[]> temp = unpack(pack);
-		int size1 = Integer.parseInt(new String(temp.get(0)));
-		temp = unpack(temp.get(1));
-		int size2 = Integer.parseInt(new String(temp.get(0)));
-		byte[] data = temp.get(1);
+		byte[] temp = Arrays.copyOfRange(pack, 0, HEAD_FIELD_SIZE);//unpack(pack);
+		int size1 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
+		temp = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE, HEAD_FIELD_SIZE*2);//unpack(temp.get(1));
+		int size2 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
+		byte[] data = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE*2, HEAD_FIELD_SIZE*2 + size1+size2);//temp.get(1);
 		byte[] one = Arrays.copyOfRange(data, 0, size1);
 		byte[] two = Arrays.copyOfRange(data, size1, size1 + size2);
 		result.add(one);
