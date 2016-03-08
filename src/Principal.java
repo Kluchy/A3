@@ -386,6 +386,8 @@ public class Principal {
 			byte[] cipher = verifySign(in2);
 			print("output of verifySign: " + new String(cipher));
 			if (areEqual(cipher, PANIC.getBytes())) {
+				byte[] plain = asymDec(cipher);
+				sessionK1 = new SecretKeySpec(plain, 0, plain.length, ENC_ALG);
 				return cipher;
 			} else {
 				// extract key and store
@@ -671,7 +673,8 @@ public class Principal {
 			if (verifies) {
 				return cipher;
 			} else {
-				return PANIC.getBytes();
+				return cipher;
+//				return PANIC.getBytes();
 			}
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
