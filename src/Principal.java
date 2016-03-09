@@ -370,10 +370,6 @@ public class Principal {
 				// extract key and store
 				byte[] plain = asymDec(cipher);
 				List<byte[]> plainSplit = Util.secureUnpack(plain);
-				if (!areEqual(S.getBytes(),plainSplit.get(0))) {
-					return ("this message was not meant for me."
-							+ " Ignoring...").getBytes();
-				}
 				byte[] key = plainSplit.get(1);
 				sessionK1 = new SecretKeySpec(key, 0, key.length, SYM_ALG);
 				return "received session key".getBytes();
