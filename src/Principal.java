@@ -358,13 +358,16 @@ public class Principal {
 		if (areEqual(TRANSPORT.getBytes(), in1)) {
 			// must be receiving a key
 			byte[] cipher = verifySign(in2);
-			print("output of verifySign: " + new String(cipher));
 			if (areEqual(cipher, PANIC.getBytes())) {
 				return cipher;
 			} else {
 				// extract key and store
 				byte[] plain = asymDec(cipher);
 				List<byte[]> plainSplit = Util.secureUnpack(plain);
+				if (!areEqual(S.getBytes(),plainSplit.get(0))) {
+					return ("this message was not meant for me."
+							+ " Ignoring...").getBytes();
+				}
 				byte[] key = plainSplit.get(1);
 				sessionK1 = new SecretKeySpec(key, 0, key.length, SYM_ALG);
 				return "received session key".getBytes();
