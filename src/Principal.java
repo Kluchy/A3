@@ -35,6 +35,10 @@ public class Principal {
 	protected static final String WRONG_ENC =
 			"Warning: This cannot be a sane response";
 	protected static final String WRONG_COM = "Warning: unrecongizable packet";
+	protected static final String NO_KEY = "Warning: Never received session key."
+			                               + " Cannot read message.";
+	protected static final String NO_VERIFY = "Warning: Never received session key."
+			+ " Cannot validate tag, but message received was ";
 	
 	// used for I/O
 	protected static final String sep = " ";
@@ -345,6 +349,7 @@ public class Principal {
 		byte[] in2 = temp.get(1);
 		if (areEqual(ENC.getBytes(),in1)) {
 			// must be a simple encryption
+			if (sessionK1 == null) return NO_KEY.getBytes();
 			return dec(in2);
 		}
 		if (areEqual(MAC.getBytes(), in1)) {
@@ -353,6 +358,7 @@ public class Principal {
 		}
 		if (areEqual(ENC_MAC.getBytes(), in1)) {
 			// must be a enc-then-mac encryption
+			if (sessionK1 == null) return NO_KEY.getBytes();
 			return deMacThenDec(in2);
 		}
 		if (areEqual(TRANSPORT.getBytes(), in1)) {
@@ -432,6 +438,8 @@ public class Principal {
 		}
 		byte[] tag = parts.get(0);
 		byte[] message = parts.get(1);
+		if (sessionK1 == null) 
+			return (NO_VERIFY+"\""+new String(message)+"\"").getBytes();
 		byte[] packedT = mac(message);
 		byte[] t = Util.secureUnpack(
 				          Util.secureUnpack(packedT).get(1)).get(0);
