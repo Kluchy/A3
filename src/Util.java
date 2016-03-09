@@ -29,16 +29,6 @@ public class Util {
 		}
 		return str.getBytes();
 	}
-	//	static byte[] size2Byte(byte[] packet) {
-	//		ByteBuffer size = ByteBuffer.allocate(8);
-	//		size.putInt(packet.length);
-	//		return size.array();
-	//	}
-	//	static byte[] size2Byte(byte[] packet) {
-	//		ByteBuffer size = ByteBuffer.allocate(8);
-	//		size.putInt(packet.length);
-	//		return size.array();
-	//	}
 
 	static int byte2Int(byte[] block) {
 		String str = new String(block);
@@ -110,11 +100,11 @@ public class Util {
 	static List<byte[]> secureUnpack(byte[] pack) {
 		List<byte[]> result = new ArrayList<byte[]>();
 		try {
-			byte[] temp = Arrays.copyOfRange(pack, 0, HEAD_FIELD_SIZE);//unpack(pack);
-			int size1 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
-			temp = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE, HEAD_FIELD_SIZE*2);//unpack(temp.get(1));
-			int size2 = byte2Int(temp);//Integer.parseInt(new String(temp.get(0)));
-			byte[] data = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE*2, HEAD_FIELD_SIZE*2 + size1+size2);//temp.get(1);
+			byte[] temp = Arrays.copyOfRange(pack, 0, HEAD_FIELD_SIZE);
+			int size1 = byte2Int(temp);
+			temp = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE, HEAD_FIELD_SIZE*2);
+			int size2 = byte2Int(temp);
+			byte[] data = Arrays.copyOfRange(pack, HEAD_FIELD_SIZE*2, HEAD_FIELD_SIZE*2 + size1+size2);
 			byte[] one = Arrays.copyOfRange(data, 0, size1);
 			byte[] two = Arrays.copyOfRange(data, size1, size1 + size2);
 			result.add(one);

@@ -1,7 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 
 public class Bob extends Principal {
 	private static final String BMCHANNEL = "bmchannel.txt";

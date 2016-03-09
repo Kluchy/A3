@@ -1,14 +1,6 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.Scanner;
 
 public class Alice extends Principal {
@@ -51,7 +43,6 @@ public class Alice extends Principal {
 		Alice alice;
 		try {
 			alice = new Alice(args[0]);
-//			alice = new Alice();
 			alice.print(INTRO);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println(e);

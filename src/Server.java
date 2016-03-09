@@ -63,11 +63,6 @@ public class Server {
 		socket.close();
 	}
 
-//	public void send(byte[] m) throws IOException {
-//		output.write(Util.concat(m, Util.TERMINATOR));
-//		output.flush();
-//	}
-
 	/**
 	 * @throws NumberFormatException - if message number not included
 	 * @return
@@ -95,32 +90,30 @@ public class Server {
 		}
 	}
 		
-		/**
-		 * @throws NumberFormatException - if message number not included
-		 * @return
-		 */
-		public byte[] readRaw() {
-			try {
-				byte[] in = new byte[4];
-				readAll(in.length, in);
-				int msgSize = Util.byte2Int(in);
-				// in contains THE BYTE ARRAY representing the size of the msg.
-//				int msgSize = Integer.parseInt(new String(in));
-				System.out.println("msgSize : " + msgSize);
-				byte[] msg = new byte[msgSize];
-				readAll(msgSize,msg);
-				return Util.concat(in, msg);
-			} catch (IOException e) {
-				return null;
-			}
+	/**
+	 * @throws NumberFormatException - if message number not included
+	 * @return
+	 */
+	public byte[] readRaw() {
+		try {
+			byte[] in = new byte[4];
+			readAll(in.length, in);
+			int msgSize = Util.byte2Int(in);
+			System.out.println("msgSize : " + msgSize);
+			byte[] msg = new byte[msgSize];
+			readAll(msgSize,msg);
+			return Util.concat(in, msg);
+		} catch (IOException e) {
+			return null;
 		}
-		
-		private void readAll(int numBytes, byte[] target) throws IOException {
-			int numRead = 0;
-			while (numRead < numBytes) {
-				numRead += input.read(target,numRead,numBytes-numRead);
-			}
+	}
+	
+	private void readAll(int numBytes, byte[] target) throws IOException {
+		int numRead = 0;
+		while (numRead < numBytes) {
+			numRead += input.read(target,numRead,numBytes-numRead);
 		}
+	}
 
 }
 

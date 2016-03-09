@@ -3,7 +3,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 
 public class Client {
 	private DataInputStream input;
@@ -39,14 +38,4 @@ public class Client {
 		output.flush();
 		numMessagesSent++;
 	}
-
-//	public String read() {
-//		try {
-//			return input.readLine();
-//		} catch (IOException e) {
-//			return "error reading message";
-//		}
-//	}
-
-
 }

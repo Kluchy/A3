@@ -28,9 +28,6 @@ public class Mallory extends Principal {
 	private PrivateKey privK;
 	private PublicKey pubKA;
 	private PublicKey pubKB;
-	//private Client conn;
-	//An arraylist of Alice's messages intercepted by Mallory and stored for future reference
-	//index 0 = the oldest message, index size() - 1 = most recent message
 	private ArrayList<byte[]> messages; 
 
 	public Mallory(String portNumber) throws UnknownHostException, IOException {
@@ -44,7 +41,6 @@ public class Mallory extends Principal {
 		S = "Mallory>> ";
 	}
 	
-	//The following are functions Mallory can use to edit/modify/store Alice's messages
 	public void addMessage (byte[] message) {
 		messages.add(message);
 	}
@@ -139,11 +135,7 @@ public class Mallory extends Principal {
 					mal.addMessage(line);
 					mal.print("Alice's original message: " 
 					          + new String(mal.getMostRecentMessage()));
-					//TO-DO: prompt user to give user input on what to do with Alice's message
 					mal.promptUser(mal);    
-					//Remember to close everything
-					//				mal.conn.close();
-					//				mal.host.close();
 				}
 
 			} catch (UnknownHostException e) {

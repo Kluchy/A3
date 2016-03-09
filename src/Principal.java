@@ -3,15 +3,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -21,11 +17,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -33,7 +26,6 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -43,51 +35,67 @@ public class Principal {
 	protected static final String WRONG_ENC =
 			"Warning: This cannot be a sane response";
 	protected static final String WRONG_COM = "Warning: unrecongizable packet";
+	
 	// used for I/O
 	protected static final String sep = " ";
+	
 	// commands accepted by a Principal
 	protected static final String CLOSE = "quit";
 	protected static final String SEND = "send";
 	protected static final String SEND_KEY = "key";
+	
 	// filters accepted with SEND command
 	protected static final String ENC = "sym";
 	protected static final String MAC = "mac";
 	protected static final String ENC_MAC = ENC+"-"+MAC;
+	
 	// special tag for key transport protocol
 	protected static final String TRANSPORT = "keyTransProtMechv2.0";
+	
 	// algorithm used for asymmetric encryption in key transport
 	private static final String ENC_ALG =
 			"RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
 	protected static final String SIGN_ALG = "SHA256withRSA";
+	
 	// algorithm used to encrypt and decrypt (symmetric)
 	private static final String SYM_ENC = "AES/CBC/ISO10126Padding";
+	
 	// used to decrypt with symmetric key
 	private static byte[] IV = readB("ivAB");
+	
 	// algorithm used for generating symmetric key
 	private static final String SYM_ALG = "AES";
+	
 	// algorithm used by MAC system
 	private static final String MAC_ALG = "HmacSHA256";
 
 	// this principal's key-pair
 	protected PublicKey pubK;
 	protected PrivateKey privK;
+	
 	// this principal's primary peer public key
 	//// for Alice, it's Bob; for Bob, Alice; for Mallory, Bob
 	protected PublicKey otherPubK1;
+	
 	//// session key shared with primary peer, if needed
 	protected SecretKey sessionK1;
+	
 	// this principal's secondary peer public key
 	//// for Alice and Bob, it's null;for Mallory, Alice
 	protected PublicKey otherPubK2;
+	
 	//// session key shared with secondary peer, if needed
 	protected SecretKey sessionK2;
+	
 	// Socket used to send messages to primary peer
 	//// used by Alice and Mallory
 	protected Client conn;
+	
 	// Socket used to receive messages from primary peer
 	//// used by Mallory and Bob
 	protected Server host;
-	// this principal's idnetifier
+	
+	// this principal's identifier
 	protected String S;
 
 	/**
@@ -153,7 +161,6 @@ public class Principal {
 			dis.close();
 			return bytes;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -178,16 +185,12 @@ public class Principal {
 			PublicKey pk = kf.generatePublic(spec);
 			return pk;
 		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -213,13 +216,10 @@ public class Principal {
 			pk = kf.generatePrivate(spec);
 			return pk;
 		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -250,43 +250,21 @@ public class Principal {
 		if (head.equals(ENC)) {
 			// apply symmetric encryption
 			message = enc(inList[1]);
-			// this line for TESTING enc-dec
-			print(new String(decrypt(message)));
 		}
 		else if (head.equals(MAC)) {
 			byte[] inB = inList[1].getBytes();
-			// apply MAC only [integrity]
 			message = mac(inB);
-			//			message = pack(tag, inB);
-			// these lines for TESTING mac-deMac
-			print(new String(decrypt(message)));
-			//			List<byte[]> parts = unpack(message);
-			//			print(""+areEqual(tag, parts.get(0)));
-			//			print(""+areEqual(inB, parts.get(1)));
-			//			print(""+deMac(parts.get(0), parts.get(1)));//true
-			//			print(""+deMac(message, inList[1].substring(1).getBytes()));//false
-			//			print(""+deMac(message, (inList[1].substring(1)+"1").getBytes()));//false
 		}
 		else if (head.equals(ENC_MAC)) {
-			// apply enc then MAC
 			message = encThenMac(inList[1]);
-			// these lines for TESTING encThenMac-deMacThenDec
-			//			List<byte[]> parts = unpack(message);
-			//			print(""+areEqual(tag, parts.get(0)));//true
-			//			print(""+areEqual(cipher, parts.get(1)));//true
-			print(new String(decrypt(message)));
 		}
 		else {
 			// apply no cryptography
 			message = input.getBytes();
 			print(new String(decrypt(message)));
 		}
-		// write to file
 		writeB(target,message);
-		// send to socket
 		conn.send(message);
-		//		if (head.equals(ENC)) 
-		//			print(new String(dec(readB(target))));
 	}
 
 	/**
@@ -303,22 +281,16 @@ public class Principal {
 			cipher = crypto.doFinal(message.getBytes());
 			cipher = Util.securePack(ENC.getBytes(),cipher);
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidAlgorithmParameterException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return cipher;
@@ -338,10 +310,8 @@ public class Principal {
 			macMessage = Util.securePack(MAC.getBytes(),
 					          Util.securePack(macMessage,message));
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return macMessage;
@@ -416,22 +386,16 @@ public class Principal {
 			crypto.init(Cipher.DECRYPT_MODE, sessionK1, iv);
 			plain = crypto.doFinal(cipher);
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidAlgorithmParameterException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return plain;
@@ -498,19 +462,14 @@ public class Principal {
 			crypto.init(Cipher.DECRYPT_MODE, privK);
 			plain = crypto.doFinal(cipher);
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return plain;
@@ -530,19 +489,14 @@ public class Principal {
 			crypto.init(Cipher.ENCRYPT_MODE, otherPubK1);
 			cipher = crypto.doFinal(message);
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return cipher;
@@ -555,27 +509,17 @@ public class Principal {
 	 * @throws IOException 
 	 */
 	protected void keyTransport(String otherID) throws IOException {
-//		print("id in data: " + new String(otherID));
-//		print("id length: " + otherID.length());
 		byte[] cipher = asymEnc();
-//		print("cipher in data: " + new String(cipher));
-//		print("cipher length: " + cipher.length);
 		String tA = LocalDateTime.now().toString();
-//		print("time in data: " + new String(tA));
-//		print("time length: " + tA.length());
 		byte[] signed = sign(otherID.getBytes(),tA, cipher);
-//		print("signature in data: " + new String(signed));
-//		print("signature length: " + signed.length);
 		byte[] packet = Util.securePack(TRANSPORT.getBytes(),
 				         Util.securePack(otherID.getBytes(),
 						  Util.securePack(tA.getBytes(),
 						   Util.securePack(cipher, signed))));
-//		print("packet: " + new String(packet));
-//		print("packet length: " + packet.length);
 		conn.send(packet);
 	}
 
-	/** TODO test, fix and cleanup
+	/** 
 	 * @spec signs 
 	 * @param otherID
 	 * @param myTimestamp
@@ -592,20 +536,16 @@ public class Principal {
 		try {
 			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initSign(privK);
-			// add otherID and timestamp to cipher before signing
 			byte[] data = Util.securePack(otherID,
 					      Util.securePack(myTimestamp.getBytes(),cipher));
 			dsa.update(data);
 			sig = dsa.sign();
 			return sig;
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SignatureException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return sig;	
@@ -625,20 +565,19 @@ public class Principal {
 	 */
 	protected byte[] verifySign(byte[] data) {
 		boolean verifies = false;
-		//		String myTimestamp = LocalDateTime.now().toString();
+		
 		// unpack data
 		List<byte[]> temp = Util.secureUnpack(data);
 		byte[] id = temp.get(0);
-//		print("id in data: " + new String(id));
-//		print("id length: " + id.length);
 		if (temp.size() != 2 || !areEqual(S.getBytes(),id)) {
 			return PANIC.getBytes();
 		}
+		
 		// check range of timestamps: has to be within a second of send
 		temp = Util.secureUnpack(temp.get(1));
-		byte[] time = temp.get(0); // this is the timestamp
-//		print("time in data: " + new String(time));
-//		print("time length: " + time.length);
+		
+		// this is the timestamp
+		byte[] time = temp.get(0); 
 		if (temp.size() != 2 || LocalDateTime.now().isAfter(
 				LocalDateTime.parse(new String(time)).plusSeconds(30))) {
 			print("Expired timestamp. Discarding message");
@@ -649,19 +588,13 @@ public class Principal {
 			return PANIC.getBytes();
 		}
 		byte[] cipher = temp.get(0);
-//		print("cipher in data: " + new String(cipher));
-//		print("cipher length: " + cipher.length);
 		byte[] signed = temp.get(1);
-//		print("signature in data: " + new String(signed));
-//		print("signature length: " + signed.length);
 		byte[] message = Util.securePack(id,
 				              Util.securePack(time, cipher));
 		try {
 			Signature dsa = Signature.getInstance(SIGN_ALG);
 			dsa.initVerify(otherPubK1);
 			dsa.update(message);
-//			System.out.println("message length: "+message.length);
-//			System.out.println("signature length: "+signed.length);
 			verifies = dsa.verify(signed);
 			print("signature verifies: " + verifies);
 			if (verifies) {
@@ -670,13 +603,10 @@ public class Principal {
 				return PANIC.getBytes();
 			}
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SignatureException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
