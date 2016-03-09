@@ -2,8 +2,6 @@ import java.io.*;
 import java.net.*;
 
 public class Bob extends Principal {
-	private static final String BMCHANNEL = "bmchannel.txt";
-	private static final String BACHANNEL = "bachannel.txt";
 	private static final String BPUBFILE = "pubKB.txt";
 	private static final String BPRIFILE = "priKB.txt";
 	private static final String APUBFILE = "pubKA.txt";

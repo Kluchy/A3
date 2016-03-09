@@ -1,16 +1,9 @@
 import java.io.*;
 import java.net.*;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Mallory extends Principal {
-	private static final String MACHANNEL = "machannel.txt";
-	private static final String MBCHANNEL = "mbchannel.txt";
-	private static final String AMCHANNEL = "amchannel.txt";
-	private static final String BMCHANNEL = "abchannel.txt";
-	private static final String ABARCHIVE = "abarchive.txt";
 
 	private static final String BPUBFILE = "pubKB.txt";
 	private static final String APUBFILE = "pubKA.txt";
@@ -24,10 +17,6 @@ public class Mallory extends Principal {
 					+ "to display all old messages: '"+"display"+"'\n\t" 
 					+ "to replay an old message: '"+"replay [message#]"+"'";
 
-	private PublicKey pubK;
-	private PrivateKey privK;
-	private PublicKey pubKA;
-	private PublicKey pubKB;
 	private ArrayList<byte[]> messages; 
 
 	public Mallory(String portNumber) throws UnknownHostException, IOException {
@@ -77,7 +66,8 @@ public class Mallory extends Principal {
 				else if (command.equals("display")) {
 					mal.print("Old messages: ");
 					for (int i = 0; i < messages.size(); i++) {
-						System.out.println("Message " + new String(messages.get(i)));
+						System.out.println("Message "+i+": "+
+					                       new String(messages.get(i)));
 					}
 				}
 				else if (command.equals("replay")) {

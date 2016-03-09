@@ -7,9 +7,9 @@ public class Tester {
 		System.out.println(new String(("000"+x).getBytes()));
 		String in = "someth|ing to do with nothing";
 		String in2 = "1234567|8901234567890";
-		String in3 = "Much adi wit|h you I hate Mallory";
+		// String in3 = "Much adi wit|h you I hate Mallory";
 		String sym = "sym";
-		String trans = "keyTrnapsrkfjn43c";
+		// String trans = "keyTrnapsrkfjn43c";
 		byte[] out = Util.securePack(in.getBytes(), in2.getBytes());
 		out = Util.securePack(sym.getBytes(), out);
 		System.out.println(new String(out));
@@ -20,6 +20,5 @@ public class Tester {
 		System.out.println(new String(splitOut.get(0)));
 		System.out.println(new String(splitOut.get(1)));
 
-	}
-
+	}	
 }

@@ -11,14 +11,13 @@ public class Alice extends Principal {
 	private static final String BPUBFILE = "pubKB.txt";
 
 	private static final String AMCHANNEL = "amchannel.txt";
-	private static final String ABCHANNEL = "abchannel.txt";
 	private static final String INTRO = 
 			"Here are your options:\r\n\t"
 					+ "plaintext message: '"+SEND+" [message]'\n\t"
 					+	"symmetric encryption: '"+SEND+sep+ENC+" [message]'\n\t"
 					+ "MAC tagging: '"+SEND+sep+MAC+" [message]'\n\t"
 					+ "Encryption+Tagging: '"+SEND+sep+ENC_MAC+" [message]'\n\t"
-					+ TRANSPORT+": '"+SEND_KEY;
+					+ TRANSPORT+": '"+SEND_KEY+"'";
 
 	public Alice(String portNumber) throws UnknownHostException, IOException, NoSuchAlgorithmException {
 		pubK = readPubKey(APUBFILE);
