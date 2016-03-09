@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Mallory extends Principal {
@@ -15,7 +16,8 @@ public class Mallory extends Principal {
 					+ "to modify message: '"+"modify"+"'\n\t"
 					+ "to drop message: '"+"drop"+"'\n\t"				
 					+ "to display all old messages: '"+"display"+"'\n\t" 
-					+ "to replay an old message: '"+"replay [message#]"+"'";
+					+ "to replay an old message: '"+"replay [message#]"+"'\n\t"
+					+ "to successfully replay an old message: '"+"susreplay [message#]"+"'\n\t";
 
 	private ArrayList<byte[]> messages; 
 
@@ -76,13 +78,32 @@ public class Mallory extends Principal {
 						int i = Integer.parseInt(index);
 						mal.conn.sendRaw(messages.get(i)); 
 						mal.print("Mallory has replayed message " + i);
+						break; 
+					} catch (IndexOutOfBoundsException e) {
+						mal.print("error: choose a number between 0 and "
+								+ messages.size());
+						mal.print(OPTIONS);
+					} catch (NumberFormatException e) {
+						mal.print("to replay, type 'replay [message#]'");
+					}
+				}
+				else if (command.equals("susreplay")) {
+					try {
+						String index = inList[1];
+						int i = Integer.parseInt(index);
+						byte[] replayMessage = messages.get(i);
+						byte[] recentMessage = getMostRecentMessage();
+						byte[] m = Arrays.copyOfRange(recentMessage, 0, 9);
+						m = Arrays.copyOfRange(replayMessage, 9, replayMessage.length);
+						mal.conn.sendRaw(m); 
+						mal.print("Mallory has replayed message " + i);
+						break; 
 					} catch (IndexOutOfBoundsException e) {
 						mal.print("error: choose a number between 0 and "
 								+ messages.size());
 					} catch (NumberFormatException e) {
 						mal.print("to replay, type 'replay [message#]'");
 					}
-					break; 
 				}
 				else if (command.equals(CLOSE)) {
 					mal.print("Shutting Down Mallory...");
