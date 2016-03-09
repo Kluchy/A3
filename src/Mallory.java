@@ -93,9 +93,8 @@ public class Mallory extends Principal {
 						int i = Integer.parseInt(index);
 						byte[] replayMessage = messages.get(i);
 						byte[] recentMessage = getMostRecentMessage();
-						byte[] m = Arrays.copyOfRange(recentMessage, 0, 9);
-						m = Arrays.copyOfRange(replayMessage, 9, replayMessage.length);
-						mal.conn.sendRaw(m); 
+						replayMessage[12] = recentMessage[12];
+						mal.conn.sendRaw(replayMessage); 
 						mal.print("Mallory has replayed message " + i);
 						break; 
 					} catch (IndexOutOfBoundsException e) {
