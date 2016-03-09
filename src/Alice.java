@@ -67,7 +67,7 @@ public class Alice extends Principal {
 				String command = inList[0];
 				if (command.equals(SEND)) {
 					alice.send(alice,inList[1], AMCHANNEL);
-					alice.print("message successfully sent");
+					alice.print("message sent");
 				}
 				else if (command.equals(SEND_KEY)) {
 					alice.print("sending session key...");

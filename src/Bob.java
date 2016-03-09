@@ -39,7 +39,6 @@ public class Bob extends Principal {
 			try {
 				if (in.available() > 0) {
 					byte[] line = b.host.read();
-					b.print("message length: " + line.length);
 					if (areEqual(line, Util.ATTACK_FLAG)) {
 						b.print("received a malicious message number!"
 								+ " Discarding...");

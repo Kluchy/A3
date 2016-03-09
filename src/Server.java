@@ -72,7 +72,7 @@ public class Server {
 			byte[] in = new byte[4];
 			readAll(in.length, in);
 			int msgSize = Util.byte2Int(in);
-			System.out.println("message Size: " + msgSize);
+			//System.out.println("message Size: " + msgSize);
 			byte[] msg = new byte[msgSize];
 			readAll(msgSize,msg);
 			List<byte[]> tmp = Util.secureUnpack(msg);
@@ -99,7 +99,7 @@ public class Server {
 			byte[] in = new byte[4];
 			readAll(in.length, in);
 			int msgSize = Util.byte2Int(in);
-			System.out.println("msgSize : " + msgSize);
+			//System.out.println("msgSize : " + msgSize);
 			byte[] msg = new byte[msgSize];
 			readAll(msgSize,msg);
 			return Util.concat(in, msg);

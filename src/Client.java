@@ -26,8 +26,8 @@ public class Client {
 	public void send(byte[] m) throws IOException {		
 		byte[] packet = Util.securePack(numMessagesSent.toString().getBytes(), m);
 		packet = Util.concat(Util.size2Byte(packet.length), packet);
-		System.out.println(packet.length);
-		System.out.println(new String(packet));
+		//System.out.println(packet.length);
+		//System.out.println(new String(packet));
 		output.write(packet);
 		output.flush();
 		numMessagesSent++;
