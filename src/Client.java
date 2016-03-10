@@ -10,6 +10,14 @@ public class Client {
 	private Socket socket;
 	private Integer numMessagesSent = 0;
 
+	public Integer getNumMessagesSent() {
+		return numMessagesSent;
+	}
+
+	public void setNumMessagesSent(Integer numMessagesSent) {
+		this.numMessagesSent = numMessagesSent;
+	}
+
 	public Client(String portNumber) throws UnknownHostException, IOException {
 		int port = Integer.parseInt(portNumber);
 		socket = new Socket("localhost", port);

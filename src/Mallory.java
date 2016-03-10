@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class Mallory extends Principal {
@@ -92,16 +93,16 @@ public class Mallory extends Principal {
 						String index = inList[1];
 						int i = Integer.parseInt(index);
 						byte[] replayMessage = messages.get(i);
-						byte[] recentMessage = getMostRecentMessage();
-						replayMessage[12] = recentMessage[12];
-						mal.conn.sendRaw(replayMessage); 
+						byte[] msg = Arrays.copyOfRange(replayMessage, 4, replayMessage.length);
+						List<byte[]> tmp = Util.secureUnpack(msg);
+						mal.conn.send(tmp.get(1));
 						mal.print("Mallory has replayed message " + i);
 						break; 
 					} catch (IndexOutOfBoundsException e) {
 						mal.print("error: choose a number between 0 and "
 								+ messages.size());
 					} catch (NumberFormatException e) {
-						mal.print("to replay, type 'replay [message#]'");
+						mal.print("to replay successfully, type 'susreplay [message#]'");
 					}
 				}
 				else if (command.equals(CLOSE)) {
@@ -139,11 +140,14 @@ public class Mallory extends Principal {
 			try {
 				if (mal.host.getInput().available() > 0) {
 					byte[] line = mal.host.readRaw();
-					//at this point, we got alice's message and need to store it
+					// at this point, we got alice's message and
+					// need to store it
 					mal.addMessage(line);
 					mal.print("Alice's original message: " 
 					          + new String(mal.getMostRecentMessage()));
-					mal.promptUser(mal);    
+					mal.promptUser(mal);
+					// sync message number
+					mal.syncClientServer();
 				}
 
 			} catch (UnknownHostException e) {

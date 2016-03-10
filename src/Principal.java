@@ -101,7 +101,17 @@ public class Principal {
 	
 	// this principal's identifier
 	protected String S;
-
+	
+	protected void syncClientServer() {
+		if (this instanceof Mallory) {
+			int numR = host.getNumMessagesReceived();
+			int numS = conn.getNumMessagesSent();
+			int max = Math.max(numR, numS);
+			host.setNumMessagesReceived(max);
+			conn.setNumMessagesSent(max);
+		}
+	}
+	
 	/**
 	 * @spec prints this principal's ID followed by input to the screen
 	 * @param output

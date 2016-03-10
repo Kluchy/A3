@@ -16,6 +16,14 @@ public class Server {
 	private int numMessagesReceived = 0;
 
 	
+	public int getNumMessagesReceived() {
+		return numMessagesReceived;
+	}
+
+	public void setNumMessagesReceived(int numMessagesReceived) {
+		this.numMessagesReceived = numMessagesReceived;
+	}
+
 	public DataInputStream getInput() {
 		return input;
 	}
@@ -76,7 +84,6 @@ public class Server {
 			byte[] msg = new byte[msgSize];
 			readAll(msgSize,msg);
 			List<byte[]> tmp = Util.secureUnpack(msg);
-			tmp = Util.secureUnpack(msg);
 			int msgNumber = Integer.parseInt(new String(tmp.get(0)));
 			if (msgNumber >= numMessagesReceived) {
 				// set to the follower of the highest index received.
@@ -102,6 +109,9 @@ public class Server {
 			//System.out.println("msgSize : " + msgSize);
 			byte[] msg = new byte[msgSize];
 			readAll(msgSize,msg);
+			// Mallory receives all of Alice's messages and can keep up
+			// with the numMessages Alice has sent.
+			numMessagesReceived++;
 			return Util.concat(in, msg);
 		} catch (IOException e) {
 			return null;
